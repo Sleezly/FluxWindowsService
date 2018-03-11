@@ -1,0 +1,5 @@
+To enable the windows service, run the command:
+netsh http add urlacl url=http://+:51234/ user=Everyone
+
+To view the result, run:
+netsh http show urlacl

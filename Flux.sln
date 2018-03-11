@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hue.UnitTests", "Flux.UnitTests\Hue.UnitTests.csproj", "{347AA536-B87F-4AF9-8871-AF9654944E9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluxApplication", "FluxApplication\FluxApplication.csproj", "{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluxService", "FluxService\FluxService.csproj", "{03DF11CF-825B-46B5-B4F8-032EB0B0B787}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HueController", "HueController\HueController.csproj", "{6F197056-E324-4C6F-9184-27F2759570F3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{347AA536-B87F-4AF9-8871-AF9654944E9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{347AA536-B87F-4AF9-8871-AF9654944E9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{347AA536-B87F-4AF9-8871-AF9654944E9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{347AA536-B87F-4AF9-8871-AF9654944E9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F197056-E324-4C6F-9184-27F2759570F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F197056-E324-4C6F-9184-27F2759570F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F197056-E324-4C6F-9184-27F2759570F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F197056-E324-4C6F-9184-27F2759570F3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DD2C666D-917A-4D2E-910D-3F0499CD7D0F}
+	EndGlobalSection
+EndGlobal
