@@ -14,6 +14,11 @@ namespace HueController
     public class FluxTimers
     {
         /// <summary>
+        /// Logging
+        /// </summary>
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
         /// Rule engine
         /// </summary>
         public List<FluxRule> Rules;
@@ -77,10 +82,14 @@ namespace HueController
                     if (lightNamesToId.ContainsKey(lightId))
                     {
                         indexedList.Add(lightNamesToId[lightId]);
+
+                        log.Info($"{nameof(TranslateNamesToIds)} Timer '{rule.Name}' has Light ID '{lightNamesToId[lightId]}' named '{lightId}'.");
                     }
                     else
                     {
                         indexedList.Add(lightId);
+
+                        log.Info($"{nameof(TranslateNamesToIds)} Timer '{rule.Name}' has Light ID '{lightId}' which is 'unnamed'.");
                     }
                 }
                 rule.LightIds = indexedList;

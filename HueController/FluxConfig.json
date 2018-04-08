@@ -1,5 +1,5 @@
 ﻿{
-    "LightTransitionDuration": "00:00:05",
+    "LightTransitionDuration": "00:00:15",
     "BridgeIds": {
         "001788fffe2bca40": "KSiJaUmdDZWBdMbRY9vIPrc6ZJSruJBKIjy-pKI6",
         "001788fffe6e5a54": "y1b3i8CTLISWjaSc85mpcdoD4Cb4MmhubzXsA58M"
@@ -11,8 +11,4 @@
     "SolarNoonTemperature": 5000,
     "SunsetColorTemperature": 2400,
     "StopColorTemperature": 2000
-    //"SunriseColorTemperature": 3400,
-    //"SolarNoonTemperature": 5000,
-    //"SunsetColorTemperature": 2400,
-    //"StopColorTemperature": 2000
 }

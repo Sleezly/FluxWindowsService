@@ -20,13 +20,14 @@ namespace HueController
 
         public void SomethingHappened()
         {
+            DateTime lastUpdate = default(DateTime);
+
             while (true)
             {
                 HueDetails status = FluxService.GetHueData();
 
                 this.BeginInvoke(new MethodInvoker(delegate
                 {
-
                     string infoLabels = "";
                     string infoData = "";
 
@@ -36,6 +37,8 @@ namespace HueController
                     infoLabels += "\nSolar Noon:";
                     infoLabels += "\nSunset:";
                     infoLabels += "\nFlux Stop:";
+                    infoLabels += "\n";
+                    infoLabels += "\nLast Update:";
                     infoLabels += "\n";
                     infoLabels += "\nSleeping:";
                     infoLabels += "\nWake at:";
@@ -47,6 +50,8 @@ namespace HueController
                     infoData += "\n" + status.FluxStatus.Sunset.ToShortTimeString();
                     infoData += "\n" + status.FluxStatus.StopTime.ToShortTimeString();
                     infoData += "\n";
+                    infoData += "\n" + (lastUpdate == default(DateTime) ? string.Empty : lastUpdate.ToShortTimeString());
+                    infoData += "\n";
                     infoData += "\n" + Math.Round(status.CurrentSleepDuration.TotalMinutes, 2, MidpointRounding.AwayFromZero) + " minutes";
                     infoData += "\n" + status.CurrentWakeCycle.ToShortTimeString();
 
@@ -54,6 +59,8 @@ namespace HueController
                     labelData.Text = infoData;
 
                     labelCurrentFluxTemperature.Text = status.FluxStatus.FluxColorTemperature.ToString();
+
+                    lastUpdate = status.CurrentWakeCycle;
                 }));
 
                 TimeSpan timeToSleep = status.CurrentWakeCycle - DateTime.Now;

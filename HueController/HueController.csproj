@@ -136,7 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <Content Include="entity_registry.yaml">
+    <Content Include="LightEntityRegistry.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="FluxConfig.json">
