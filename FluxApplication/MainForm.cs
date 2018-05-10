@@ -58,7 +58,7 @@ namespace HueController
                     labelInfo.Text = infoLabels;
                     labelData.Text = infoData;
 
-                    labelCurrentFluxTemperature.Text = status.FluxStatus.FluxColorTemperature.ToString();
+                    labelCurrentFluxTemperature.Text = status.LastColorTemperature.ToString();
 
                     lastUpdate = status.CurrentWakeCycle;
                 }));

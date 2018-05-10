@@ -21,6 +21,8 @@ namespace HueController
 
         private DateTime currentWakeCycle;
 
+        private int lastColorTemperature;
+
         private Flux flux = null;
 
         private FluxTimers fluxTimers = null;
@@ -68,6 +70,7 @@ namespace HueController
                 {
                     FluxStatus = flux.Status,
                     On = cancellationTokenSource != null && !cancellationTokenSource.IsCancellationRequested,
+                    LastColorTemperature = lastColorTemperature,
                     CurrentSleepDuration = currentSleepDuration,
                     CurrentWakeCycle = currentWakeCycle,
                 };
@@ -125,6 +128,8 @@ namespace HueController
         /// <param name="hueConfig"></param>
         private Hue()
         {
+            lastColorTemperature = 0;
+
             Start();
         }
 
@@ -310,11 +315,12 @@ namespace HueController
                 log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{colorTemperature}' complete; sleeping for '{totalMinutes}' minutes and will resume at '{now + currentSleepDuration}'.");
 
                 // Set updated status prior to invoking callbacks
+                this.lastColorTemperature = colorTemperature;
                 this.currentSleepDuration = currentSleepDuration;
                 this.currentWakeCycle = now + currentSleepDuration;
 
                 // Wait for the next interval which will require an update
-                Thread.Sleep(currentSleepDuration);
+                Task.Delay(currentSleepDuration, cancellationToken).ContinueWith(tsk => { }).Wait();
             }
 
             // We're no longer running so allow another thread to be kicked off later
@@ -333,7 +339,19 @@ namespace HueController
             // Lights to update
             List<string> lightsToUpdate = new List<string>();
 
-            foreach (Light light in client.GetLightsAsync().Result)
+            IEnumerable<Light> lights = null;
+
+            try
+            {
+                lights = client.GetLightsAsync().Result;
+            }
+            catch (Exception e)
+            {
+                log.Debug($"'{nameof(ModifyFluxLights)}' exception attempting to get lights from client. '{e.Message}' '{e.InnerException}'.");
+                return;
+            }
+
+            foreach (Light light in lights)
             {
                 if (lightsToScan.Any(a => a.Id == light.Id))
                 {
@@ -392,7 +410,18 @@ namespace HueController
                 if (sceneId.Name.ToLowerInvariant().Contains("flux") &&
                     sceneId.Name.ToLowerInvariant().Contains("switch"))
                 {
-                    Scene scene = client.GetSceneAsync(sceneId.Id).Result;
+                    Scene scene = null;
+
+                    try
+                    {
+                        scene = client.GetSceneAsync(sceneId.Id).Result;
+                    }
+                    catch (Exception e)
+                    {
+                        log.Debug($"'{nameof(ModifyFluxLights)}' exception attempting to get scene info from client. '{e.Message}' '{e.InnerException}'.");
+                        return;
+                    }
+
                     Dictionary<string, State> lightStates = scene.LightStates;
 
                     // Update scenes to use the new color temperature

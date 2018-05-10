@@ -13,6 +13,9 @@ namespace HueController
         public Boolean On;
 
         [DataMember]
+        public Int32 LastColorTemperature;
+
+        [DataMember]
         public TimeSpan CurrentSleepDuration;
 
         [DataMember]
