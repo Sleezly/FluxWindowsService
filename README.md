@@ -23,12 +23,12 @@ A Flux like circadian service specifically coupled to the Philips Hue platform (
 1. Create a client ID for your Hue Hub(s) by following the official documentation here:
 https://www.developers.meethue.com/documentation/configuration-api#71_create_user
 
-2. Once you can connect to your Hue hub, get the Bridge ID for each of your Hue hubs.
+2. Once you can connect to your hub, get the Bridge ID.
 - from a browser, go to http://x.x.x.x/debug/clip.html
 - set the URL to /api/[user token from #1]/config
 - look for "bridgeid"
 
-3. Tell Flux what to do in your HueController\FluxConfig.json:
+3. Tell Flux what to do in HueController\FluxConfig.json:
 
     {
         "LightTransitionDuration": "00:00:15",           // Default transition duration for each flux action
@@ -45,12 +45,12 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
         "StopColorTemperature": 2000                     // Ending color temperature for the evening
     }
 
-4. OPTIONAL! Tell Flux which lights to control in your HueController\LightEntityRegistry.yaml -- this way you can exclude certain lights complete:
+4. OPTIONAL! Tell Flux which lights to control in HueController\LightEntityRegistry.yaml -- this way you can exclude certain lights:
 - if you have HomeAssistant connected to your Hue Hubs, simply grab your LightEntityRegistry.yaml file and use that. No extra work required.
-- if some lights should not be controller, remove them from this file
-- if all lights should be controlled, skip this file
-- if you don't have HomeAssistant, specify white-list of lights to include as follows:
-  light.inside_garage_1
+- if some lights should not be controlled, remove them from this file
+- if all lights should be controlled, remove this file
+- if you don't have HomeAssistant, to manually specify a white-list of lights format is as follows:
+  light.inside_garage_1:
   light.inside_garage_2: 
 
 5. OPTIONAL! Tell Flux if you have any custom timers you'd like to run in your HueController\FluxTimers.json file:
@@ -66,10 +66,10 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
                 ],
                 "BridgeId": "[bridgeid]",
                 "TransitionDuration": "00:5:00",
-                "Time": "20:00:00",
+                "Time": "20:00:00",          // Time for the rule to run
                 "Brightness": 165,
-                "State": "On",
-                "OnlyReactWithState": "On"   // This means the rule will only happen if the lights are in the On state
+                "State": "On",               // This is the desired transition state for the lights
+                "OnlyReactWithState": "On"   // This means the rule will only happen if the lights are in the 'On' state
             }
         ]
     }
