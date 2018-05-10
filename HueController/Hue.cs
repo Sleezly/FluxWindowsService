@@ -521,18 +521,13 @@ namespace HueController
         /// <param name="lightsToAdd"></param>
         private void AddLights(List<string> lightsToAdd)
         {
-            if (lightsToAdd == null || lightsToAdd.Count() == 0)
-            {
-                throw new ArgumentNullException($"Argument '{nameof(lightsToAdd)}' cannot not be null or empty.");
-            }
-
             foreach (KeyValuePair<HueBridge, List<LightDetails>> client in clients)
             {
                 foreach (Light light in client.Key.Client.GetLightsAsync().Result)
                 {
                     LightDetails.LightType type = LightDetails.TranslateStringToLightType(light.Type);
 
-                    if (lightsToAdd.Contains(light.Name.ToLower()) &&
+                    if ((lightsToAdd.Count() == 0 || lightsToAdd.Contains(light.Name.ToLower())) &&
                         type != LightDetails.LightType.WhiteOnly)
                     {
                         LightDetails lightDetail = new LightDetails()

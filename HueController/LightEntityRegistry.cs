@@ -6,6 +6,8 @@ namespace HueController
 {
     public class LightEntityRegistry
     {
+        private const string LightEntityRegistryFilename = "LightEntityRegistry.yaml";
+
         public string Platform { get; set; }
         public string Name { get; set; }
 
@@ -22,28 +24,28 @@ namespace HueController
         {
             List<string> lights = new List<string>();
 
-            using (StreamReader input = new StreamReader($"LightEntityRegistry.yaml"))
+            if (File.Exists(LightEntityRegistryFilename))
             {
-                while (!input.EndOfStream)
+                using (StreamReader input = new StreamReader(LightEntityRegistryFilename))
                 {
-                    string currentLine = input.ReadLine();
-
-                    if (currentLine.StartsWith("light.") && currentLine.EndsWith(":"))
+                    while (!input.EndOfStream)
                     {
-                        string name = currentLine.Split('.')[1].Split(':')[0].Trim();
+                        string currentLine = input.ReadLine();
 
-                        lights.Add(name.Replace('_', ' '));
+                        if (currentLine.StartsWith("light.") && currentLine.EndsWith(":"))
+                        {
+                            string name = currentLine.Split('.')[1].Split(':')[0].Trim();
+
+                            lights.Add(name.Replace('_', ' '));
+                        }
                     }
                 }
-            }
 
-            if (lights.Count == 0)
-            {
-                throw new Exception($"Failed to translate any lights in {nameof(DeserializeLightObjectGraph)}");
+                if (lights.Count == 0)
+                {
+                    log.Info($"Found no lights to translate any lights in {nameof(DeserializeLightObjectGraph)}");
+                }
             }
-
-            //lights.Sort();
-            //log.Info($"{nameof(DeserializeLightObjectGraph)} Lights to be Flux controller:\n  {String.Join("\n  ", lights)}");
 
             return lights;
         }
