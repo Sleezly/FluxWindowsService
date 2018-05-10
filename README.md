@@ -1,23 +1,24 @@
 # FluxWindowsService
 A Flux like circadian service specifically coupled to the Philips Hue platform (Q42) and runs as a Windows service.
 
-# Features:
+# Features
 - Runs as a background windows service to calculate color temperature for Philips Hue color and color ambiance light bulbs.
 - Scheduled to run as set by configs and is fully customizeable by data.
 - Can add timers to initiate a color / brightness change action for a set of lights at a set time.
 - Service does not poll; sleeps until the next color temperature value needs to be sent.
+- Scenes on the Hub bridge can be updated with color temperature value to ensure lights currently off will be turn on at expected color.
 - Hosts a RESETful HTTP endpoint to allow for toggling service on/off and to retrieve current state of service.
 - An HTTP self-host server will be started at http://localhost:51234/ with simple POST and GET commands supported.
 - Support for multiple Hue hubs.
 - A light-weight win32 app can be launched to retrieve Flux status via HTTP GET commands.
 
-# Nuget packages utilized:
+# Nuget packages utilized
 - Q42 to facilitate communication to the Hub hub.
 - Topshelf to facilitate running as a Windows service.
 - SolarCalendar to determine solar noon proxima.
 - log4net for logging.
 
-# How to set up:
+# How to set up
 
 1. Create a client ID for your Hue Hub(s) by following the official documentation here:
 https://www.developers.meethue.com/documentation/configuration-api#71_create_user
@@ -44,9 +45,7 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
         "StopColorTemperature": 2000                     // Ending color temperature for the evening
     }
 
-# Steps #4 and #5 are optional!
-
-4. Tell Flux which lights to control in your HueController\LightEntityRegistry.yaml -- this way you can exclude certain lights complete:
+4. OPTIONAL! Tell Flux which lights to control in your HueController\LightEntityRegistry.yaml -- this way you can exclude certain lights complete:
 - if you have HomeAssistant connected to your Hue Hubs, simply grab your LightEntityRegistry.yaml file and use that. No extra work required.
 - if some lights should not be controller, remove them from this file
 - if all lights should be controlled, skip this file
@@ -54,7 +53,7 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
   light.inside_garage_1
   light.inside_garage_2: 
 
-5. Tell Flux if you have any custom timers you'd like to run in your HueController\FluxTimers.json file:
+5. OPTIONAL! Tell Flux if you have any custom timers you'd like to run in your HueController\FluxTimers.json file:
 
     {
         "Rules": [
@@ -95,6 +94,17 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
   
   To unreigster the service, simply run 'uninstall'.
   
+9. To enable Scenes to be updated, we opt-in by including the word "flux" and "switch" somewhere in the scene.
 
+  Example: "Switch Flux Lamp Master Bedroom" attached to a Master Bedroom Hue Dimmer will turn the lights on at Flux temperature.
+  
+  Note: iOS app iConnectHue attaches the word "switch" to Hue Scenes set on the Hue dimmer by default.
+  
+  To check what the exact name of your Hue scene is, you can use the Clip debug tool:
+  http://x.x.x.x/debug/clip.html -> /api/[id]/scenes -> GET
+  
+10. When in doubt, check the logs!
+
+  Flux\FluxService\bin\Debug\myapp.log
 
 
