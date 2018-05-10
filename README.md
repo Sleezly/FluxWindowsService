@@ -3,6 +3,7 @@ A Flux like circadian service specifically coupled to the Philips Hue platform (
 
 # Features
 - Runs as a background windows service to calculate color temperature for Philips Hue color and color ambiance light bulbs.
+- Build with Visual Studio 2017 Community Edition (free!)
 - Scheduled to run as set by configs and is fully customizeable by data.
 - Can add timers to initiate a color / brightness change action for a set of lights at a set time.
 - Service does not poll; sleeps until the next color temperature value needs to be sent.
@@ -18,7 +19,7 @@ A Flux like circadian service specifically coupled to the Philips Hue platform (
 - SolarCalendar to determine solar noon proxima.
 - log4net for logging.
 
-# How to set up
+# How to set config files
 
 1. Create a client ID for your Hue Hub(s) by following the official documentation here:
 https://www.developers.meethue.com/documentation/configuration-api#71_create_user
@@ -75,7 +76,9 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
     }
 
 
-6. Install the Flux Windows Service to self-host the HTTP endpoint.
+# Starting the Flux Service
+
+1. Allow the 51234 port to host an http endpoint
 
   To enable HTTP self-hosting, run this command:
   $> netsh http add urlacl url=http://+:51234/ user=Everyone
@@ -85,16 +88,24 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
   
   If the above is not executed, starting the web app will fail.
   
-7. Enable the 51234 port for broadcast through windows firewall to allow incoming traffic in 'private', assuming your
+  Once the app is started, check to see if the service is reachable by going to:
+  http://localhost:51234/api/flux
+  
+2. Open the 51234 port for broadcast in windows firewall to allow 'private' incoming traffic, assuming your
    network profile is set to private. If this doesn't work, double-check profile is set to private rather than public.
+   
+   This allows communication between the current PC and external, local networked devices.
 
-8. Run FluxService via Visual Studio or build and then install the Flux Service for execution as a Windows Service
+3. Run FluxService via Visual Studio or build and then install the Flux Service for execution as a Windows Service
 
   Flux\FluxService\bin\Debug>FluxService.exe install
   
   To unreigster the service, simply run 'uninstall'.
   
-9. To enable Scenes to be updated, we opt-in by including the word "flux" and "switch" somewhere in the scene.
+  
+# Enable Hue Dimmer Swtich Scene Adjustments
+ 
+- To enable Scenes to be updated, we opt-in by including the word "flux" and "switch" somewhere in the scene.
 
   Example: "Switch Flux Lamp Master Bedroom" attached to a Master Bedroom Hue Dimmer will turn the lights on at Flux temperature.
   
@@ -103,7 +114,10 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
   To check what the exact name of your Hue scene is, you can use the Clip debug tool:
   http://x.x.x.x/debug/clip.html -> /api/[id]/scenes -> GET
   
-10. When in doubt, check the logs!
+  
+# Troubleshooting
+
+- When in doubt, check the logs!
 
   Flux\FluxService\bin\Debug\myapp.log
 
