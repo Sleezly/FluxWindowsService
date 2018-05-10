@@ -1,23 +1,23 @@
 # FluxWindowsService
 A Flux like circadian service specifically coupled to the Philips Hue platform (Q42) and runs as a Windows service.
 
-Features:
-- Runs as a background windows service to calculate color temperature to set to Philips Hue color and color ambiance light bulbs.
-- Schedule to run is set via config and fully customizeable.
+# Features:
+- Runs as a background windows service to calculate color temperature for Philips Hue color and color ambiance light bulbs.
+- Scheduled to run as set by configs and is fully customizeable by data.
 - Can add timers to initiate a color / brightness change action for a set of lights at a set time.
 - Service does not poll; sleeps until the next color temperature value needs to be sent.
-- Hosts a RESETful HTTP endpoint to allow for toggling service on/off and to retrieve current state.
+- Hosts a RESETful HTTP endpoint to allow for toggling service on/off and to retrieve current state of service.
+- An HTTP self-host server will be started at http://localhost:51234/ with simple POST and GET commands supported.
 - Support for multiple Hue hubs.
-- an HTTP selfhost server will be started at http://localhost:51234/ with simple POST and GET commands supported.
-- a light-weight win32 app can be launched to retrieve Flux status via HTTP GET commands.
+- A light-weight win32 app can be launched to retrieve Flux status via HTTP GET commands.
 
-Nuget packages utilized:
+# Nuget packages utilized:
 - Q42 to facilitate communication to the Hub hub.
 - Topshelf to facilitate running as a Windows service.
 - SolarCalendar to determine solar noon proxima.
 - log4net for logging.
 
-How to set up:
+# How to set up:
 
 1. Create a client ID for your Hue Hub(s) by following the official documentation here:
 https://www.developers.meethue.com/documentation/configuration-api#71_create_user
@@ -44,7 +44,7 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
         "StopColorTemperature": 2000                     // Ending color temperature for the evening
     }
 
-Steps #4 and #5 are optional!
+# Steps #4 and #5 are optional!
 
 4. Tell Flux which lights to control in your HueController\LightEntityRegistry.yaml -- this way you can exclude certain lights complete:
 - if you have HomeAssistant connected to your Hue Hubs, simply grab your LightEntityRegistry.yaml file and use that. No extra work required.
