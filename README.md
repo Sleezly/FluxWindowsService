@@ -89,7 +89,7 @@ Steps #4 and #5 are optional!
 7. Enable the 51234 port for broadcast through windows firewall to allow incoming traffic in 'private', assuming your
    network profile is set to private. If this doesn't work, double-check profile is set to private rather than public.
 
-8. Install the Flux Service for execution as a Windows Service
+8. Run FluxService via Visual Studio or build and then install the Flux Service for execution as a Windows Service
 
   Flux\FluxService\bin\Debug>FluxService.exe install
   
@@ -97,4 +97,4 @@ Steps #4 and #5 are optional!
   
 
 
-   - Either run the service via Visual Studio with F5 for local debugging.
+
