@@ -105,7 +105,8 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
   
 # Enable Hue Dimmer Swtich Scene Adjustments
  
-- To enable Scenes to be updated, we opt-in by including the word "flux" and "switch" somewhere in the scene.
+- To enable Scenes to be updated, we opt-in by including the word "flux" and "switch" somewhere in the name of each scene
+
 
   Example: "Switch Flux Lamp Master Bedroom" attached to a Master Bedroom Hue Dimmer will turn the lights on at Flux temperature.
   
@@ -114,6 +115,18 @@ https://www.developers.meethue.com/documentation/configuration-api#71_create_use
   To check what the exact name of your Hue scene is, you can use the Clip debug tool:
   http://x.x.x.x/debug/clip.html -> /api/[id]/scenes -> GET
   
+  Example Scene:
+  {
+		"name": "Flux Day Hallway-Switch",
+		"lights": [
+			"13",
+			"14",
+			"47"
+		],
+        ...
+		"version": 2
+	},
+    
   
 # Troubleshooting
 
