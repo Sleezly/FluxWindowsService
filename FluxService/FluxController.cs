@@ -27,9 +27,9 @@ namespace FluxService
         {
             string request = await Request.Content.ReadAsStringAsync();
 
-            HueDetails hueStatus = JsonConvert.DeserializeObject<HueDetails>(request);
+            HuePost huePost = JsonConvert.DeserializeObject<HuePost>(request);
 
-            if (fluxServiceContract.Post(hueStatus.On))
+            if (fluxServiceContract.Post(huePost.On.Equals("on", System.StringComparison.InvariantCultureIgnoreCase), huePost.LightLevel))
             {
                 return Ok();
             }

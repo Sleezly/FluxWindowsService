@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HueController
 {
@@ -44,6 +40,29 @@ namespace HueController
         public static bool IsInAllowedColorRange(string type, int color)
         {
             return IsInAllowedColorRange(TranslateStringToLightType(type), color);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="color"></param>
+        /// <returns></returns>
+        public static int? NormalizeColorForAllowedColorRange(LightType type, int color)
+        {
+            switch (type)
+            {
+                case LightType.Color:
+                    return Math.Min(MaxAllowedColorTemperatureForWhiteAndColorLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
+
+                case LightType.WhiteAmbiance:
+                    return Math.Min(MaxAllowedColorTemperatureForWhiteAmbianceLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
+
+                case LightType.WhiteOnly:
+                    return null;
+
+                default:
+                    throw new ArgumentException($"Unsupported light type '{type}'.");
+            }
         }
 
         /// <summary>

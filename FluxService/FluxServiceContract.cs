@@ -20,8 +20,10 @@ namespace FluxService
         /// </summary>
         /// <param name="On"></param>
         /// <returns></returns>
-        public bool Post(bool On)
+        public bool Post(bool On, double LightLevel)
         {
+            hue.LightLevel = LightLevel;
+
             // Ensure current status does not match requested state
             if (hue.Status.On != On)
             {
@@ -33,13 +35,9 @@ namespace FluxService
                 {
                     hue.Stop();
                 }
+            }
 
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return true;
         }
     }
 }

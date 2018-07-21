@@ -10,6 +10,6 @@ namespace FluxService
         HueDetails Get();
 
         [OperationContract]
-        bool Post(bool On);
+        bool Post(bool On, double LightLevel);
     }
 }

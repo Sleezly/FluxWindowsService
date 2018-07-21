@@ -155,6 +155,7 @@
     <Compile Include="FluxServiceContract.cs" />
     <Compile Include="FluxController.cs" />
     <Compile Include="FluxWindowsService.cs" />
+    <Compile Include="HuePost.cs" />
     <Compile Include="IFluxServiceContract.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

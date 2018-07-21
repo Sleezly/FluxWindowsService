@@ -1,14 +1,29 @@
 ﻿{
-    "LightTransitionDuration": "00:00:15",
-    "BridgeIds": {
-        "001788fffe2bca40": "KSiJaUmdDZWBdMbRY9vIPrc6ZJSruJBKIjy-pKI6",
-        "001788fffe6e5a54": "y1b3i8CTLISWjaSc85mpcdoD4Cb4MmhubzXsA58M"
-    },
-    "StopTime": "22:00:00",
-    "Latitude": 47.8601,
-    "Longitude": -122.2043,
-    "SunriseColorTemperature": 3000,
-    "SolarNoonTemperature": 5000,
-    "SunsetColorTemperature": 2400,
-    "StopColorTemperature": 2000
+  // Hue Hub client secrets
+  "BridgeIds": {
+    "001788fffe2bca40": "KSiJaUmdDZWBdMbRY9vIPrc6ZJSruJBKIjy-pKI6",
+    "001788fffe6e5a54": "y1b3i8CTLISWjaSc85mpcdoD4Cb4MmhubzXsA58M"
+  },
+
+  // Transition interval duration
+  "LightTransitionDuration": "00:00:15",
+
+  // Coordinates for sunrise and sunset calculations
+  "Latitude": 47.8601,
+  "Longitude": -122.2043,
+
+  // Discontinue at Time
+  "StopTime": "22:00:00",
+
+  // Flux color values
+  "SunriseColorTemperature": 3000,
+  "SolarNoonTemperature":    5000,
+  "SunsetColorTemperature":  2400,
+  "StopColorTemperature":    2000,
+
+  // Brightness
+  "MaxLightLevel": 35000,
+  "MinLightLevel": 10000,
+  "MaxBrightness": 255,
+  "MinBrightness": 100
 }

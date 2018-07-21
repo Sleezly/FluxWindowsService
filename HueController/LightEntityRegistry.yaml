@@ -154,3 +154,12 @@ light.laundry_2:
 light.bedroom_master_closet:
   platform: hue
   unique_id: 00:17:88:01:03:57:1c:c9-0b
+light.entry_1:
+  platform: hue
+  unique_id: 00:17:88:01:02:94:4b:4f-0b
+light.entry_2:
+  platform: hue
+  unique_id: 00:17:88:01:02:24:e0:60-0b
+light.entry_3:
+  platform: hue
+  unique_id: 00:17:88:01:02:56:bd:2b-0b

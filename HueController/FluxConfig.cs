@@ -52,6 +52,21 @@ namespace HueController
         public int StopColorTemperature;
 
         /// <summary>
+        /// Brightness
+        /// </summary>
+        [DataMember]
+        public double MaxLightLevel;
+
+        [DataMember]
+        public double MinLightLevel;
+
+        [DataMember]
+        public byte MaxBrightness;
+
+        [DataMember]
+        public byte MinBrightness;
+
+        /// <summary>
         /// Load the configuration file.
         /// </summary>
         /// <returns></returns>
