@@ -1,21 +1,3 @@
-light.inside_garage_2:
-  platform: hue
-  unique_id: 00:17:88:01:10:52:12:71-0b
-light.inside_garage_1:
-  platform: hue
-  unique_id: 00:17:88:01:10:43:11:18-0b
-light.backyard_2:
-  platform: hue
-  unique_id: 00:17:88:01:10:52:1c:0f-0b
-light.backyard_1:
-  platform: hue
-  unique_id: 00:17:88:01:10:52:1c:0e-0b
-light.outside_garage_1:
-  platform: hue
-  unique_id: 00:17:88:01:10:43:82:fd-0b
-light.outside_garage_2:
-  platform: hue
-  unique_id: 00:17:88:01:10:52:d5:41-0b
 light.bedroom_james_ceiling_1:
   platform: hue
   unique_id: 00:17:88:01:02:34:72:b4-0b

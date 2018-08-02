@@ -120,6 +120,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FluxCalculate.cs" />
     <Compile Include="Utilities\ColorConverter.cs" />
     <Compile Include="Utilities\HSV.cs" />
     <Compile Include="Utilities\RGB.cs" />

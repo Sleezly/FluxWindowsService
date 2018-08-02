@@ -373,8 +373,6 @@ namespace HueController
         private void ModifyFluxLights(HueClient client, List<LightDetails> lightsToScan, int colorTemperature, byte? brightness, TimeSpan transitiontime)
         {
             // Lights to update
-            List<string> lightsToUpdate = new List<string>();
-
             IEnumerable<Light> lights = null;
 
             try
@@ -387,67 +385,15 @@ namespace HueController
                 return;
             }
 
-            double[] currentColorTemperatureAsXY = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(colorTemperature));
+            // Exclude lights not to be included in Flux calcuationss
+            lights = lights.Where(light => lightsToScan.Any(a => a.Id == light.Id && light.State.On));
 
-            foreach (Light light in lights)
-            {
-                if (lightsToScan.Any(a => a.Id == light.Id && light.State.On))
-                {
-                    bool needToSetColorTemperature = false;
-                    bool needToSetBrightness = brightness.HasValue ? (light.State.Brightness != brightness.Value) : false;
-
-                    switch (light.State.ColorMode)
-                    {
-                        case "xy":
-                            {
-                                int ct = ColorConverter.XYToTemperature(light.State.ColorCoordinates);
-                                RGB rgb = ColorConverter.MiredToRGB(ct);
-                                double[] xy = ColorConverter.RGBtoXY(rgb);
-
-                                // Sum of the X and Y color difference must be within 10% to be considered a match. This ensures
-                                // color changes are not overridden by Flux but also allows for XY color values which are still
-                                // in the color temperature spectrum to be Flux-controlled.
-                                if (Math.Abs(xy[0] - currentColorTemperatureAsXY[0]) + Math.Abs(xy[1] - currentColorTemperatureAsXY[1]) < 0.15)
-                                {
-                                    needToSetColorTemperature = true;
-                                }
-                            }
-                            break;
-
-                        case "hs":
-                            // Hue & Saturation is always to be ignored by Flux.
-                            needToSetColorTemperature = false;
-                            break;
-
-                        case "ct":
-                        default:
-                            // Only set ColorTemp values if there is a change.
-                            needToSetColorTemperature = (light.State.ColorTemperature != colorTemperature);
-                            break;
-                    }
-
-                    LightDetails lightToSet = lightsToScan.First(a => a.Id == light.Id);
-
-                    if (needToSetBrightness && lightToSet.Type == LightDetails.LightType.WhiteOnly)
-                    {
-                        lightsToUpdate.Add(light.Id);
-                    }
-                    else if (needToSetColorTemperature)
-                    {
-                        // For white ambiance lights, don't adjust the color temperature when over the allowed threshold
-                        if (LightDetails.IsInAllowedColorRange(lightToSet.Type, colorTemperature))
-                        {
-                            lightsToUpdate.Add(light.Id);
-                            log.Debug($"'{nameof(ModifyFluxLights)}' found '{light.Id}', '{light.Name}' with temperature '{light.State.ColorTemperature}' and brightness '{light.State.Brightness}'.");
-                        }
-                    }
-                }
-            }
+            IEnumerable<string> lightsToUpdate = FluxCalculate.CalculateLightsToUpdate(lights, colorTemperature, brightness);
 
             // Send the light update command
-            if (lightsToUpdate.Count() > 0)
+            if (lightsToUpdate.Any())
             {
-                try
+                try 
                 {
                     LightCommand lightCommand = new LightCommand()
                     {
@@ -527,7 +473,7 @@ namespace HueController
             }
             catch(Exception e)
             {
-                log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' exception attempting to get all scenes  from client. '{e.Message}' '{e.InnerException}'.");
+                log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' exception attempting to get all scenes from client. '{e.Message}' '{e.InnerException}'.");
                 return;
             }
 
@@ -537,11 +483,11 @@ namespace HueController
 
             // Scenes to update
             foreach (Scene sceneId in scenes)
-            { 
+            {
                 Scene scene = null;
 
                 try
-                { 
+                {
                     scene = await client.GetSceneAsync(sceneId.Id);
                 }
                 catch (Exception e)
@@ -550,7 +496,7 @@ namespace HueController
                 }
 
                 if (null != scene)
-                { 
+                {
                     Dictionary<string, State> lightStates = scene.LightStates;
 
                     // Update scenes to use the new color temperature
@@ -566,7 +512,6 @@ namespace HueController
                                     On = true,
                                     ColorTemperature = LightDetails.NormalizeColorForAllowedColorRange(lightsToSet.First(a => a.Id == lightId).Type, colorTemperature),
                                     Brightness = brightness.HasValue ? brightness.Value : lightStates[lightId].Brightness,
-                                    //TransitionTime = TimeSpan.FromMilliseconds(1000),
                                 };
 
                                 try

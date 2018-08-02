@@ -1,13 +1,11 @@
-﻿using HueController;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace HueController.UnitTests
 {
     [TestClass]
-    public class UnitTest
+    public class FluxTests
     {
         private Flux flux = new Flux()
         {

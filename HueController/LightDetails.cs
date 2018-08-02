@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace HueController
 {
@@ -11,6 +12,13 @@ namespace HueController
             Color,
         }
 
+        public static Dictionary<LightType, string> LightTypeNames = new Dictionary<LightType, string>()
+        {
+            { LightType.WhiteOnly, "Dimmable light" },
+            { LightType.WhiteAmbiance, "Color temperature light" },
+            { LightType.Color, "Extended color light" },
+        };
+
         public string Id { get; set; }
 
         public string Name { get; set; }
@@ -20,17 +28,17 @@ namespace HueController
         /// <summary>
         /// Maximum allow color temperature for white ambiance lights
         /// </summary>
-        private const int MaxAllowedColorTemperatureForWhiteAmbianceLights = 454;
+        public const int MaxAllowedColorTemperatureForWhiteAmbianceLights = 454;
 
         /// <summary>
         /// Maximum allow color temperature for extended color lights
         /// </summary>
-        private const int MaxAllowedColorTemperatureForWhiteAndColorLights = 500;
+        public const int MaxAllowedColorTemperatureForWhiteAndColorLights = 500;
 
         /// <summary>
         /// Maximum allow color temperature for extended color lights
         /// </summary>
-        private const int MinAllowedColorTemperatureForWhiteAndColorLights = 154;
+        public const int MinAllowedColorTemperatureForWhiteAndColorLights = 154;
 
         /// <summary>
         /// 
