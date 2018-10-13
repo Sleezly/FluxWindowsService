@@ -1,8 +1,8 @@
 ﻿{
   // Hue Hub client secrets
   "BridgeIds": {
-    "001788fffe2bca40": "KSiJaUmdDZWBdMbRY9vIPrc6ZJSruJBKIjy-pKI6",
-    "001788fffe6e5a54": "y1b3i8CTLISWjaSc85mpcdoD4Cb4MmhubzXsA58M"
+    "001788fffe2bca40": "GHnCQe25v5OoalLLr829zs1vutC-JafGgxLnkJ8E",
+    "001788fffe6e5a54": "qdqMnTtULs1xrLag1zjTNzop29nJLNn3h6x0bl8I"
   },
 
   // Transition interval duration
@@ -23,7 +23,7 @@
 
   // Brightness
   "MaxLightLevel": 35000,
-  "MinLightLevel": 10000,
+  "MinLightLevel": 20000,
   "MaxBrightness": 255,
-  "MinBrightness": 100
+  "MinBrightness": 155
 }

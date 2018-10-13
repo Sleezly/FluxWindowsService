@@ -31,6 +31,9 @@ namespace HueController
                     string infoLabels = "";
                     string infoData = "";
 
+                    infoLabels += "\nBrightness:";
+                    infoLabels += "\nLightlevel:";
+                    infoLabels += "\n";
                     infoLabels += "\nStatus:";
                     infoLabels += "\n";
                     infoLabels += "\nSunrise:";
@@ -43,6 +46,9 @@ namespace HueController
                     infoLabels += "\nSleeping:";
                     infoLabels += "\nWake at:";
 
+                    infoData += "\n" + status.LastBrightness.ToString();
+                    infoData += "\n" + status.LastLightlevel.ToString("N0");
+                    infoData += "\n";
                     infoData += "\n" + (status.On ? "On" : "Off");
                     infoData += "\n";
                     infoData += "\n" + status.FluxStatus.Sunrise.ToShortTimeString();
@@ -52,7 +58,7 @@ namespace HueController
                     infoData += "\n";
                     infoData += "\n" + (lastUpdate == default(DateTime) ? string.Empty : lastUpdate.ToShortTimeString());
                     infoData += "\n";
-                    infoData += "\n" + Math.Round(status.CurrentSleepDuration.TotalMinutes, 2, MidpointRounding.AwayFromZero) + " minutes";
+                    infoData += "\n" + status.CurrentSleepDuration.ToString("c");
                     infoData += "\n" + status.CurrentWakeCycle.ToShortTimeString();
 
                     labelInfo.Text = infoLabels;
@@ -74,11 +80,6 @@ namespace HueController
                     Thread.Sleep(TimeSpan.FromSeconds(10));
                 }
             }
-        }
-
-        private string TodayOrTomorrow(DateTime date)
-        {
-            return (date.Day == DateTime.Today.Day) ? "Today" : "Tomorrow";
         }
     }
 }

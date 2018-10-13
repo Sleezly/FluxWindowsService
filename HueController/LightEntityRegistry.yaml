@@ -37,9 +37,6 @@ light.formal_dining_2:
 light.bedroom_master_lamp:
   platform: hue
   unique_id: 00:17:88:01:02:73:ac:01-0b
-light.bedroom_anna_closet:
-  platform: hue
-  unique_id: 00:17:88:01:03:5b:74:b9-0b
 light.washroom_downlight_1:
   platform: hue
   unique_id: 00:17:88:01:03:78:82:76-0b
@@ -127,15 +124,6 @@ light.office_1:
 light.office_2:
   platform: hue
   unique_id: 00:17:88:01:02:34:73:53-0b
-light.laundry_1:
-  platform: hue
-  unique_id: 00:17:88:01:03:57:1c:c6-0b
-light.laundry_2:
-  platform: hue
-  unique_id: 00:17:88:01:03:5b:5e:42-0b
-light.bedroom_master_closet:
-  platform: hue
-  unique_id: 00:17:88:01:03:57:1c:c9-0b
 light.entry_1:
   platform: hue
   unique_id: 00:17:88:01:02:94:4b:4f-0b

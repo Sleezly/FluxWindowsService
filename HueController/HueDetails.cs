@@ -19,6 +19,9 @@ namespace HueController
         public Int32 LastBrightness;
 
         [DataMember]
+        public Int32 LastLightlevel;
+
+        [DataMember]
         public TimeSpan CurrentSleepDuration;
 
         [DataMember]

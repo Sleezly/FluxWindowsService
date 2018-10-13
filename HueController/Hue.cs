@@ -88,6 +88,7 @@ namespace HueController
                     On = CancellationToken != null && !CancellationToken.IsCancellationRequested,
                     LastColorTemperature = LastColorTemperature,
                     LastBrightness = LastBrightness.HasValue ? LastBrightness.Value : byte.MaxValue,
+                    LastLightlevel = LightLevel.HasValue ? Convert.ToInt32(LightLevel.Value) : 0,
                     CurrentSleepDuration = CurrentSleepDuration,
                     CurrentWakeCycle = CurrentWakeCycle,
                 };
@@ -112,13 +113,13 @@ namespace HueController
             Task.Run(() => FluxUpdateThread(CancellationToken.Token), CancellationToken.Token);
 
             // Parse the timer JSON on the fly
-            Dictionary<string, string> lightsToAdd = GetListOfLightsWithIds();
-            this.FluxTimers = FluxTimers.Create(lightsToAdd);
+            //Dictionary<string, string> lightsToAdd = GetListOfLightsWithIds();
+            //this.FluxTimers = FluxTimers.Create(lightsToAdd);
 
-            foreach (FluxRule rule in FluxTimers.Rules)
-            {
-                Task.Run(() => FluxTimerThread(rule, CancellationToken.Token), CancellationToken.Token);
-            }
+            //foreach (FluxRule rule in FluxTimers.Rules)
+            //{
+            //    Task.Run(() => FluxTimerThread(rule, CancellationToken.Token), CancellationToken.Token);
+            //}
         }
 
         /// <summary>
@@ -445,6 +446,12 @@ namespace HueController
             {
                 // Daytime
                 double lightLevelPercent = Math.Max(0.0, (LightLevel.Value - this.MinLightLevel) / Math.Max(this.MaxLightLevel - this.MinLightLevel, LightLevel.Value - this.MinLightLevel));
+
+                if (DateTime.Now < DateTime.Today.AddHours(8) ||
+                    DateTime.Now > DateTime.Today.AddHours(19))
+                {
+                    lightLevelPercent *= 0.5;
+                }
 
                 return (byte)Math.Floor(this.MinBrightness + (this.MaxBrightness - this.MinBrightness) * (1.0 - lightLevelPercent));
             }
