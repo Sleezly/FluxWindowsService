@@ -284,8 +284,11 @@ namespace HueController
         {
             if (values == null)
             {
-                values = new List<KeyValuePair<DateTime, int>>();
-                values.Add(new KeyValuePair<DateTime, int>(time, value));
+                values = new List<KeyValuePair<DateTime, int>>
+                {
+                    new KeyValuePair<DateTime, int>(time, value)
+                };
+
                 return values;
             }
 

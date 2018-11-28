@@ -8,16 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Utilities;
 
 namespace HueController
 {
     public class Hue
     {
-        public double? LightLevel { get; set; }
-
-        private const int ScentUpdateThreshold = 10;
-
         private TimeSpan LightTansitionTime;
 
         private TimeSpan CurrentSleepDuration;
@@ -30,11 +25,26 @@ namespace HueController
 
         private Flux Flux = null;
 
-        private FluxTimers FluxTimers = null;
-
         private List<KeyValuePair<HueBridge, List<LightDetails>>> HueClients = null;
 
         private CancellationTokenSource CancellationToken = null;
+
+        /// <summary>
+        /// Light Level property
+        /// </summary>
+        private double? _lightLevel;
+        public double? LightLevel
+        {
+            get
+            {
+                return _lightLevel;
+            }
+            set
+            {
+                log.Debug($"'{nameof(LightLevel)}' setting value to '{value}'.");
+                _lightLevel = value;
+            }
+        }
 
         /// <summary>
         /// Hue Configuration Settings
@@ -56,7 +66,7 @@ namespace HueController
         /// Singleton
         /// </summary>
         private static Hue myHue = null;
-        private static Object thisLock = new Object();
+        private readonly static Object thisLock = new Object();
 
         /// <summary>
         /// 
@@ -87,7 +97,7 @@ namespace HueController
                     FluxStatus = Flux.Status,
                     On = CancellationToken != null && !CancellationToken.IsCancellationRequested,
                     LastColorTemperature = LastColorTemperature,
-                    LastBrightness = LastBrightness.HasValue ? LastBrightness.Value : byte.MaxValue,
+                    LastBrightness = LastBrightness ?? byte.MaxValue,
                     LastLightlevel = LightLevel.HasValue ? Convert.ToInt32(LightLevel.Value) : 0,
                     CurrentSleepDuration = CurrentSleepDuration,
                     CurrentWakeCycle = CurrentWakeCycle,
@@ -106,20 +116,11 @@ namespace HueController
             }
 
             // Parse the config JSON on the fly
-            SetFluxConfigValues();
+            SetFluxConfigValues().GetAwaiter().GetResult();
 
             CancellationToken = new CancellationTokenSource();
 
             Task.Run(() => FluxUpdateThread(CancellationToken.Token), CancellationToken.Token);
-
-            // Parse the timer JSON on the fly
-            //Dictionary<string, string> lightsToAdd = GetListOfLightsWithIds();
-            //this.FluxTimers = FluxTimers.Create(lightsToAdd);
-
-            //foreach (FluxRule rule in FluxTimers.Rules)
-            //{
-            //    Task.Run(() => FluxTimerThread(rule, CancellationToken.Token), CancellationToken.Token);
-            //}
         }
 
         /// <summary>
@@ -144,7 +145,7 @@ namespace HueController
         /// Instiantiates the Flux client.
         /// </summary>
         /// <param name="hueConfig"></param>
-        private Hue()
+        internal Hue()
         {
             LastColorTemperature = 0;
             LastBrightness = byte.MaxValue;
@@ -154,10 +155,23 @@ namespace HueController
         }
 
         /// <summary>
+        /// Instiantiates the Flux client
+        /// </summary>
+        /// <param name="lastColorTemperature"></param>
+        /// <param name="lastBrightness"></param>
+        /// <param name="lightLevel"></param>
+        internal Hue(int lastColorTemperature, byte lastBrightness, double lightLevel)
+        {
+            LastColorTemperature = lastColorTemperature;
+            LastBrightness = lastBrightness;
+            LightLevel = lightLevel;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private void SetFluxConfigValues()
+        internal async Task SetFluxConfigValues()
         {
             FluxConfig fluxConfig = FluxConfig.ParseConfig();
 
@@ -165,9 +179,9 @@ namespace HueController
 
             if (HueClients == null)
             {
-                HueClients = ConnectClient(fluxConfig.BridgeIds);
+                HueClients = await ConnectClient(fluxConfig.BridgeIds);
 
-                AddLights(LightEntityRegistry.DeserializeLightObjectGraph());
+                await AddLights();
             }
 
             if (Flux == null)
@@ -201,13 +215,13 @@ namespace HueController
         /// 
         /// </summary>
         /// <returns></returns>
-        private Dictionary<string, string> GetListOfLightsWithIds()
+        private async Task<Dictionary<string, string>> GetListOfLightsWithIds()
         {
             Dictionary<string, string> lightNamesToId = new Dictionary<string, string>();
 
             foreach (KeyValuePair<HueBridge, List<LightDetails>> client in HueClients)
             {
-                IEnumerable<Light> lights = client.Key.Client.GetLightsAsync().Result;
+                IEnumerable<Light> lights = await client.Key.Client.GetLightsAsync();
 
                 foreach (Light light in lights)
                 {
@@ -217,144 +231,24 @@ namespace HueController
 
             return lightNamesToId;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fluxRule"></param>
-        /// <param name="cancellationToken"></param>
-        private void FluxTimerThread(FluxRule fluxRule, CancellationToken cancellationToken)
-        {
-            // Infinite loop until told to stop is requested
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                DateTime whenToWake = DateTime.Today + fluxRule.Time;
-                if (fluxRule.Sunrise)
-                {
-                    whenToWake = Flux.Sunrise;
-                }
-                else if (fluxRule.Sunset)
-                {
-                    whenToWake = Flux.Sunset;
-                }
-
-                if (DateTime.Now > whenToWake)
-                {
-                    whenToWake = whenToWake.AddDays(1);
-                }
-
-                log.Info($"'{nameof(FluxTimerThread)}' triggering at '{whenToWake.ToShortTimeString()}' in '{(int)(whenToWake - DateTime.Now).TotalMinutes}' minutes for '{fluxRule.Name}' with lights '{String.Join(", ", fluxRule.LightIds)}'.");
-
-                Task.Delay(whenToWake - DateTime.Now, cancellationToken).ContinueWith(tsk => {}).Wait();
-
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    foreach (KeyValuePair<HueBridge, List<LightDetails>> client in HueClients)
-                    {
-                        if (client.Key.BridgeId == fluxRule.BridgeId)
-                        {
-                            List<string> lightIds = fluxRule.LightIds;
-
-                            // When OnlyReactWithState is set, remove any lights which don't match requested state value
-                            if (fluxRule.OnlyReactWithState != FluxRule.ReactWithState.Any)
-                            {
-                                List<Light> allLights = client.Key.Client.GetLightsAsync().Result.ToList();
-
-                                foreach (Light light in allLights)
-                                {
-                                    if (lightIds.Any(x => x.Equals(light.Id, StringComparison.InvariantCultureIgnoreCase)))
-                                    {
-                                        if (light.State.On && fluxRule.OnlyReactWithState == FluxRule.ReactWithState.Off ||
-                                            !light.State.On && fluxRule.OnlyReactWithState == FluxRule.ReactWithState.On)
-                                        {
-                                            lightIds.Remove(light.Id);
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Ensure there's at least one light to adjust
-                            if (lightIds.Count() > 0)
-                            {
-                                LightCommand lightCommand = new LightCommand()
-                                {
-                                    On = (fluxRule.State == FluxRule.States.On),
-                                    Brightness = fluxRule.Brightness,
-                                    TransitionTime = fluxRule.TransitionDuration,
-                                };
-
-                                // Set the color temperature when requested
-                                if (fluxRule.SetFluxColorTemperature)
-                                {
-                                    lightCommand.ColorTemperature = Flux.GetColorTemperature(DateTime.Now);
-                                }
-
-                                try
-                                {
-                                    HueResults result = client.Key.Client.SendCommandAsync(lightCommand, lightIds.ToArray()).Result;
-
-                                    log.Info($"'{nameof(FluxTimerThread)}' activated '{fluxRule.Name}' with brightness '{fluxRule.Brightness}' for lights '{String.Join(", ", lightIds)}'.");
-                                }
-                                catch (Exception e)
-                                {
-                                    log.Debug($"'{nameof(ModifyFluxLights)}' exception attempting to send a light command. '{e.Message}' '{e.InnerException}'.");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // We're no longer running so allow another thread to be kicked off later
-            log.Info($"'{nameof(FluxTimerThread)}' for '{fluxRule.Name}' now terminating.");
-        }
-
+        
         /// <summary>
         /// Flux worker thread
         /// </summary>
-        private void FluxUpdateThread(CancellationToken cancellationToken)
+        private async Task FluxUpdateThread(CancellationToken cancellationToken)
         {
             log.Info($"'{nameof(FluxUpdateThread)}' now running.");
+
+            bool adjustBrightness = true;
 
             // Infinite loop until told to stop by master thread
             while (!cancellationToken.IsCancellationRequested)
             {
+                adjustBrightness = !adjustBrightness;
+
                 DateTime now = DateTime.Now;
 
-                // Get the color temperature for the given time of day
-                int colorTemperature = Flux.GetColorTemperature(now);
-
-                // Get the brightness
-                byte? brightness = CalculateFluxBrightness();
-
-                foreach (KeyValuePair<HueBridge, List<LightDetails>> client in HueClients)
-                {
-                    // Only process a hub if there are lights in that hub to check
-                    if (client.Value.Count() > 0)
-                    {
-                        // Send light update commands to lights which are currently 'On'
-                        ModifyFluxLights(client.Key.Client, client.Value, colorTemperature, brightness, LightTansitionTime);
-
-                        // Update the underlying 'Flux' scenes
-                        ModifyFluxSwitchScenes(client.Key.Client, client.Value, colorTemperature, brightness, LightTansitionTime);
-                    }
-                }
-
-                // Get our next sleep duration
-                TimeSpan currentSleepDuration = Flux.GetThreadSleepDuration(now);
-
-                // Round the number of minutes to nearest quarter
-                const int round = 15;
-                double CountRound = (currentSleepDuration.TotalSeconds / round);
-                int totalMinutes = (int)Math.Truncate(CountRound + 0.5) * round / 60;
-
-                log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{colorTemperature}' and brightness '{brightness}' complete; sleeping for '{totalMinutes}' minutes and will resume at '{now + currentSleepDuration}'.");
-
-                // Set updated status prior to invoking callbacks
-                this.LastColorTemperature = colorTemperature;
-                this.LastBrightness = brightness;
-                this.CurrentSleepDuration = currentSleepDuration;
-                this.CurrentWakeCycle = now + currentSleepDuration;
+                TimeSpan currentSleepDuration = await FluxUpdate(adjustBrightness, DateTime.Now);
 
                 // Wait for the next interval which will require an update
                 Task.Delay(currentSleepDuration, cancellationToken).ContinueWith(tsk => { }).Wait();
@@ -362,6 +256,52 @@ namespace HueController
 
             // We're no longer running so allow another thread to be kicked off later
             log.Info($"'{nameof(FluxUpdateThread)}' now terminating.");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="adjustBrightness"></param>
+        /// <param name="now"></param>
+        /// <returns></returns>
+        internal async Task<TimeSpan> FluxUpdate(bool adjustBrightness, DateTime now)
+        {
+            // Get the color temperature for the given time of day
+            int colorTemperature = Flux.GetColorTemperature(now);
+
+            // Get the brightness
+            byte? brightness = adjustBrightness ? CalculateFluxBrightness() : null;
+
+            foreach (KeyValuePair<HueBridge, List<LightDetails>> client in HueClients)
+            {
+                // Only process a hub if there are lights in that hub to check
+                if (client.Value.Count() > 0)
+                {
+                    // Send light update commands to lights which are currently 'On'
+                    await ModifyFluxLights(client.Key.Client, client.Value, colorTemperature, brightness, LightTansitionTime);
+
+                    // Update the underlying 'Flux' scenes
+                    await ModifyFluxSwitchScenes(client.Key.Client, client.Value, colorTemperature, brightness, LightTansitionTime);
+                }
+            }
+
+            // Get our next sleep duration
+            TimeSpan currentSleepDuration = Flux.GetThreadSleepDuration(now);
+
+            // Round the number of minutes to nearest quarter
+            const int round = 15;
+            double CountRound = (currentSleepDuration.TotalSeconds / round);
+            int totalMinutes = (int)Math.Truncate(CountRound + 0.5) * round / 60;
+
+            log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{colorTemperature}' and brightness '{brightness}' complete; sleeping for '{totalMinutes}' minutes and will resume at '{now + currentSleepDuration}'.");
+
+            // Set updated status prior to invoking callbacks
+            this.LastColorTemperature = colorTemperature;
+            this.LastBrightness = brightness;
+            this.CurrentSleepDuration = currentSleepDuration;
+            this.CurrentWakeCycle = now + currentSleepDuration;
+
+            return currentSleepDuration;
         }
         
         /// <summary>
@@ -371,14 +311,14 @@ namespace HueController
         /// <param name="lightsToScan"></param>
         /// <param name="colorTemperature"></param>
         /// <param name="transitiontime"></param>
-        private void ModifyFluxLights(HueClient client, List<LightDetails> lightsToScan, int colorTemperature, byte? brightness, TimeSpan transitiontime)
+        private async Task ModifyFluxLights(HueClient client, List<LightDetails> lightsToScan, int colorTemperature, byte? brightness, TimeSpan transitiontime)
         {
             // Lights to update
             IEnumerable<Light> lights = null;
 
             try
             {
-                lights = client.GetLightsAsync().Result;
+                lights = await client.GetLightsAsync();
             }
             catch (Exception e)
             {
@@ -387,7 +327,12 @@ namespace HueController
             }
 
             // Exclude lights not to be included in Flux calcuationss
-            lights = lights.Where(light => lightsToScan.Any(a => a.Id == light.Id && light.State.On));
+            lights = lights.Where(light => lightsToScan.Any(a => 
+                a.Id == light.Id && 
+                light.State.On && 
+                a.AdjustColorTemperatureAllowed && 
+                (!brightness.HasValue || (brightness.HasValue && a.AdjustBrightnessAllowed)))
+            );
 
             IEnumerable<string> lightsToUpdate = FluxCalculate.CalculateLightsToUpdate(lights, colorTemperature, brightness);
 
@@ -399,11 +344,15 @@ namespace HueController
                     LightCommand lightCommand = new LightCommand()
                     {
                         ColorTemperature = colorTemperature,
-                        Brightness = brightness,
                         TransitionTime = transitiontime,
                     };
 
-                    HueResults result = client.SendCommandAsync(lightCommand, lightsToUpdate).Result;
+                    if (brightness.HasValue)
+                    {
+                        lightCommand.Brightness = brightness.Value;
+                    }
+
+                    HueResults result = await client.SendCommandAsync(lightCommand, lightsToUpdate);
 
                     log.Info($"'{nameof(ModifyFluxLights)}' set '{lightsToUpdate.Count()}' lights to color temperature '{colorTemperature}' and brightness '{brightness.ToString()}' to '{String.Join(", ", lightsToUpdate)}'.");
                 }
@@ -447,8 +396,8 @@ namespace HueController
                 // Daytime
                 double lightLevelPercent = Math.Max(0.0, (LightLevel.Value - this.MinLightLevel) / Math.Max(this.MaxLightLevel - this.MinLightLevel, LightLevel.Value - this.MinLightLevel));
 
-                if (DateTime.Now < DateTime.Today.AddHours(8) ||
-                    DateTime.Now > DateTime.Today.AddHours(19))
+                //if (DateTime.Now < DateTime.Today.AddHours(8) ||
+                //    DateTime.Now > DateTime.Today.AddHours(19))
                 {
                     lightLevelPercent *= 0.5;
                 }
@@ -468,7 +417,7 @@ namespace HueController
         /// <param name="client"></param>
         /// <param name="lightsToSet"></param>
         /// <param name="colorTemperature"></param>
-        private async void ModifyFluxSwitchScenes(HueClient client, List<LightDetails> lightsToSet, int colorTemperature, byte? brightness, TimeSpan transitiontime)
+        private async Task ModifyFluxSwitchScenes(HueClient client, List<LightDetails> lightsToSet, int colorTemperature, byte? brightness, TimeSpan transitiontime)
         {
             Dictionary<string, int> scenesModified = new Dictionary<string, int>();
 
@@ -506,20 +455,34 @@ namespace HueController
                 {
                     Dictionary<string, State> lightStates = scene.LightStates;
 
-                    // Update scenes to use the new color temperature
+                    // Update scenes to use the new color temperature and brightness
                     foreach (string lightId in scene.LightStates.Keys)
                     {
-                        // Light in scene is also in the light to update list
-                        if (lightsToSet.Any(a => a.Id == lightId))
+                        if (lightStates[lightId].On)
                         {
-                            if (lightStates[lightId].On)
+                            LightDetails lightDetails = lightsToSet.SingleOrDefault(x => x.Id == lightId);
+
+                            // Only modify lights in the allowed-to-update list
+                            if (null != lightDetails)
                             {
                                 LightCommand lightCommand = new LightCommand()
                                 {
                                     On = true,
-                                    ColorTemperature = LightDetails.NormalizeColorForAllowedColorRange(lightsToSet.First(a => a.Id == lightId).Type, colorTemperature),
-                                    Brightness = brightness.HasValue ? brightness.Value : lightStates[lightId].Brightness,
                                 };
+
+                                if (lightDetails.AdjustColorTemperatureAllowed)
+                                {
+                                    lightCommand.ColorTemperature = LightDetails.NormalizeColorForAllowedColorRange(lightsToSet.First(a => a.Id == lightId).Type, colorTemperature);
+                                }
+
+                                if (lightDetails.AdjustBrightnessAllowed)
+                                {
+                                    lightCommand.Brightness = brightness ?? lightStates[lightId].Brightness;
+                                }
+                                else
+                                {
+                                    lightCommand.Brightness = lightStates[lightId].Brightness;
+                                }
 
                                 try
                                 {
@@ -562,11 +525,11 @@ namespace HueController
         /// <summary>
         /// Establishes a connection to all Hue Hubs on the network.
         /// </summary>
-        private List<KeyValuePair<HueBridge, List<LightDetails>>> ConnectClient(Dictionary<string, string> bridgeIds)
+        private async Task<List<KeyValuePair<HueBridge, List<LightDetails>>>> ConnectClient(Dictionary<string, string> bridgeIds)
         {
             IBridgeLocator locator = new HttpBridgeLocator();
 
-            IEnumerable<LocatedBridge> bridgeIps = locator.LocateBridgesAsync(TimeSpan.FromSeconds(15)).Result;
+            IEnumerable<LocatedBridge> bridgeIps = await locator.LocateBridgesAsync(TimeSpan.FromSeconds(15));
 
             List<KeyValuePair<HueBridge, List<LightDetails>>> clients = new List<KeyValuePair<HueBridge, List<LightDetails>>>();
 
@@ -580,11 +543,12 @@ namespace HueController
 
                 client.Initialize(secret);
 
-                HueBridge hueBridge = new HueBridge();
-
-                hueBridge.Client = client;
-                hueBridge.BridgeId = bridge.BridgeId;
-                hueBridge.IpAddress = bridge.IpAddress;
+                HueBridge hueBridge = new HueBridge
+                {
+                    Client = client,
+                    BridgeId = bridge.BridgeId,
+                    IpAddress = bridge.IpAddress
+                };
 
                 clients.Add(new KeyValuePair<HueBridge, List<LightDetails>>(hueBridge, new List<LightDetails>()));
             }
@@ -596,30 +560,52 @@ namespace HueController
         /// List of lights allowed to be processed as part of Flux updates. Only lights added here may be updated.
         /// </summary>
         /// <param name="lightsToAdd"></param>
-        private void AddLights(List<string> lightsToAdd)
+        private async Task AddLights()
         {
+            List<LightEntityRegistry> lightEntities = LightEntityRegistry.DeserializeLightObjectGraph();
+
             foreach (KeyValuePair<HueBridge, List<LightDetails>> client in HueClients)
             {
-                foreach (Light light in client.Key.Client.GetLightsAsync().Result)
+                IEnumerable<Light> lights = await client.Key.Client.GetLightsAsync();
+                foreach (Light light in lights.OrderBy(n => n.Name))
                 {
                     LightDetails.LightType type = LightDetails.TranslateStringToLightType(light.Type);
 
-                    if (!lightsToAdd.Any() || lightsToAdd.Contains(light.Name.ToLower()))
+                    LightEntityRegistry lightEntity = lightEntities.FirstOrDefault(x => x.Name.Equals(light.Name, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (null != lightEntity)
                     {
                         LightDetails lightDetail = new LightDetails()
                         {
                             Id = light.Id,
                             Name = light.Name,
                             Type = type,
+                            AdjustBrightnessAllowed = lightEntity.ControlBrightness,
+                            AdjustColorTemperatureAllowed = (type == LightDetails.LightType.WhiteOnly ? false : lightEntity.ControlTemperature),
                         };
 
                         client.Value.Add(lightDetail);
 
-                        log.Info($"{nameof(AddLights)} Adding '{light.Name}' which is a '{type}' light for Flux.");
+                        log.Info($"{nameof(AddLights)} Adding '{light.Name}' '{light.Id}' '{light.UniqueId}' which is a '{type}' light for Flux. Brightness Control {lightDetail.AdjustBrightnessAllowed}. Temperature Control {lightDetail.AdjustColorTemperatureAllowed}.");
+                    }
+                    else if (!lightEntities.Any())
+                    {
+                        LightDetails lightDetail = new LightDetails()
+                        {
+                            Id = light.Id,
+                            Name = light.Name,
+                            Type = type,
+                            AdjustBrightnessAllowed = true,
+                            AdjustColorTemperatureAllowed = (type == LightDetails.LightType.WhiteOnly ? false : true),
+                        };
+
+                        client.Value.Add(lightDetail);
+
+                        log.Info($"{nameof(AddLights)} Adding '{light.Name}' '{light.Id}' '{light.UniqueId}' which is a '{type}' light for Flux.");
                     }
                     else
                     {
-                        log.Info($"{nameof(AddLights)} Skipping '{light.Name}' which is a '{type}' light for Flux.");
+                        log.Info($"{nameof(AddLights)} Skipping '{light.Name}' '{light.Id}' '{light.UniqueId}' which is a '{type}' light for Flux.");
                     }
                 }
             }

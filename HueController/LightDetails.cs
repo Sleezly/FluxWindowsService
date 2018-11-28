@@ -25,6 +25,10 @@ namespace HueController
 
         public LightType Type { get; set; }
 
+        public bool AdjustBrightnessAllowed { get; set; }
+
+        public bool AdjustColorTemperatureAllowed { get; set; }
+
         /// <summary>
         /// Maximum allow color temperature for white ambiance lights
         /// </summary>
@@ -83,10 +87,10 @@ namespace HueController
             switch (type)
             {
                 case LightType.Color:
-                    return color < MaxAllowedColorTemperatureForWhiteAndColorLights && color > MinAllowedColorTemperatureForWhiteAndColorLights;
+                    return color <= MaxAllowedColorTemperatureForWhiteAndColorLights && color >= MinAllowedColorTemperatureForWhiteAndColorLights;
 
                 case LightType.WhiteAmbiance:
-                    return color < MaxAllowedColorTemperatureForWhiteAmbianceLights && color > MinAllowedColorTemperatureForWhiteAndColorLights;
+                    return color <= MaxAllowedColorTemperatureForWhiteAmbianceLights && color >= MinAllowedColorTemperatureForWhiteAndColorLights;
 
                 case LightType.WhiteOnly:
                     return false;

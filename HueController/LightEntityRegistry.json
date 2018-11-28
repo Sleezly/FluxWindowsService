@@ -1,0 +1,252 @@
+{
+	"Lights": [
+    {
+      "Name": "tv",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "mantle",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+		{
+			"Name": "theater lamp 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "theater lamp 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "formal dining 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "formal dining 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "formal dining 3",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "dining table",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "washroom downlight 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "washroom downlight 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "kitchen sink",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+    {
+      "Name": "kitchen strip dishwasher",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "kitchen strip coffee",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "kitchen strip microwave",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+		{
+			"Name": "kitchen strip oven",
+			"ControlBrightness": false,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "kitchen ceiling 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "kitchen ceiling 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "kitchen ceiling 3",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "kitchen ceiling 4",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom james lamp",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom james ceiling 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom james ceiling 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom anna lamp",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom anna ceiling 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom anna ceiling 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom nathan lamp",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom nathan ceiling 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom nathan ceiling 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "go",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom master lamp",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+
+		{
+			"Name": "bedroom master ceiling 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom master ceiling 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom master lightstrip",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "office 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "office 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+    {
+      "Name": "office 3",
+      "ControlBrightness": true,
+      "ControlTemperature": true
+    },
+		{
+			"Name": "entry 1",
+			"ControlBrightness": true
+		},
+		{
+			"Name": "entry 2",
+			"ControlBrightness": true
+		},
+		{
+			"Name": "entry 3",
+			"ControlBrightness": true
+		},
+		{
+			"Name": "mantle ceiling 1",
+			"ControlBrightness": false,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "mantle ceiling 2",
+			"ControlBrightness": false,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "mantle ceiling 3",
+			"ControlBrightness": false,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom hall 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom hall 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom hall 3",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom james ceiling 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom james ceiling 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom anna lamp",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom anna ceiling 1",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		},
+		{
+			"Name": "bedroom anna ceiling 2",
+			"ControlBrightness": true,
+			"ControlTemperature": true
+		}
+	]
+}

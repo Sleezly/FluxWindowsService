@@ -15,8 +15,10 @@ namespace FluxService
         [HttpGet]
         public HttpResponseMessage Get()
         {
-            HttpResponseMessage response = new HttpResponseMessage();
-            response.Content = new ObjectContent<HueDetails>(fluxServiceContract.Get(), new JsonMediaTypeFormatter(), "application/json");
+            HttpResponseMessage response = new HttpResponseMessage
+            {
+                Content = new ObjectContent<HueDetails>(fluxServiceContract.Get(), new JsonMediaTypeFormatter(), "application/json")
+            };
 
             return response;
         }

@@ -13,8 +13,10 @@ namespace Fluxer
 
         public static HueDetails GetHueData()
         {
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(baseAddress);
+            HttpClient client = new HttpClient
+            {
+                BaseAddress = new Uri(baseAddress)
+            };
 
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 

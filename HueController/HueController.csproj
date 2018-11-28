@@ -124,12 +124,8 @@
     <Compile Include="Utilities\ColorConverter.cs" />
     <Compile Include="Utilities\HSV.cs" />
     <Compile Include="Utilities\RGB.cs" />
-    <None Include="FluxTimers.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <Compile Include="Flux.cs" />
     <Compile Include="FluxConfig.cs" />
-    <Compile Include="FluxTimers.cs" />
     <Compile Include="HueBridge.cs" />
     <Compile Include="Hue.cs" />
     <Compile Include="FluxStatus.cs" />
@@ -140,9 +136,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <Content Include="LightEntityRegistry.yaml">
+    <None Include="LightEntityRegistry.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </None>
     <None Include="FluxConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

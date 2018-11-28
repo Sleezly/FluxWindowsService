@@ -32,6 +32,12 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
+        public void TestLightEntityRegistry()
+        {
+            LightEntityRegistry.DeserializeLightObjectGraph();
+        }
+
+        [TestMethod]
         public void TestGetPollingRate()
         {
             flux.Today = new DateTime(2018, 1, 1);

@@ -1,15 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace HueController
 {
     public class LightEntityRegistry
     {
-        private const string LightEntityRegistryFilename = "LightEntityRegistry.yaml";
+        [DataMember]
+        public string Name;
 
-        public string Platform { get; set; }
-        public string Name { get; set; }
+        [DataMember]
+        public bool ControlBrightness;
 
+        [DataMember]
+        public bool ControlTemperature;
+
+        /// <summary>
+        /// JSON filename
+        /// </summary>
+        private readonly static string LightEntityRegistryFilename = "LightEntityRegistry.json";
+       
         /// <summary>
         /// Logging
         /// </summary>
@@ -19,34 +31,22 @@ namespace HueController
         /// 
         /// </summary>
         /// <returns></returns>
-        public static List<string> DeserializeLightObjectGraph()
+        public static List<LightEntityRegistry> DeserializeLightObjectGraph()
         {
-            List<string> lights = new List<string>();
+            StreamReader reader = new StreamReader(LightEntityRegistryFilename);
+            string config = reader.ReadToEndAsync().Result;
 
-            if (File.Exists(LightEntityRegistryFilename))
+            List<LightEntityRegistry> lightEntities = new List<LightEntityRegistry>();
+
+            JEnumerable<JToken> lightTokens = JsonConvert.DeserializeObject<JObject>(config)["Lights"].Children();
+            foreach (JToken lightToken in lightTokens)
             {
-                using (StreamReader input = new StreamReader(LightEntityRegistryFilename))
-                {
-                    while (!input.EndOfStream)
-                    {
-                        string currentLine = input.ReadLine();
+                LightEntityRegistry lightEntity = JsonConvert.DeserializeObject<LightEntityRegistry>(lightToken.ToString());
 
-                        if (currentLine.StartsWith("light.") && currentLine.EndsWith(":"))
-                        {
-                            string name = currentLine.Split('.')[1].Split(':')[0].Trim();
-
-                            lights.Add(name.Replace('_', ' '));
-                        }
-                    }
-                }
-
-                if (lights.Count == 0)
-                {
-                    log.Info($"Found no lights to translate any lights in {nameof(DeserializeLightObjectGraph)}");
-                }
+                lightEntities.Add(lightEntity);
             }
 
-            return lights;
+            return lightEntities;
         }
     }
 }
