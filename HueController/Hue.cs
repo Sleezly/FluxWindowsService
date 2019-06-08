@@ -297,7 +297,7 @@ namespace HueController
 
             // Set updated status prior to invoking callbacks
             this.LastColorTemperature = colorTemperature;
-            this.LastBrightness = brightness;
+            this.LastBrightness = brightness ?? LastBrightness;
             this.CurrentSleepDuration = currentSleepDuration;
             this.CurrentWakeCycle = now + currentSleepDuration;
 
@@ -396,11 +396,7 @@ namespace HueController
                 // Daytime
                 double lightLevelPercent = Math.Max(0.0, (LightLevel.Value - this.MinLightLevel) / Math.Max(this.MaxLightLevel - this.MinLightLevel, LightLevel.Value - this.MinLightLevel));
 
-                //if (DateTime.Now < DateTime.Today.AddHours(8) ||
-                //    DateTime.Now > DateTime.Today.AddHours(19))
-                {
-                    lightLevelPercent *= 0.5;
-                }
+                log.Debug($"LightLevel: {LightLevel.Value}. LightLevel Percent: {lightLevelPercent.ToString()}. Brightness: {(byte)Math.Floor(this.MinBrightness + (this.MaxBrightness - this.MinBrightness) * (1.0 - lightLevelPercent))}.");
 
                 return (byte)Math.Floor(this.MinBrightness + (this.MaxBrightness - this.MinBrightness) * (1.0 - lightLevelPercent));
             }

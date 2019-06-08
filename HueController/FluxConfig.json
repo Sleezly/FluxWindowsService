@@ -6,7 +6,7 @@
   },
 
   // Transition interval duration
-  "LightTransitionDuration": "00:00:15",
+  "LightTransitionDuration": "00:01:00",
 
   // Coordinates for sunrise and sunset calculations
   "Latitude": 47.8601,
@@ -23,7 +23,7 @@
 
   // Brightness
   "MaxLightLevel": 35000,
-  "MinLightLevel": 20000,
+  "MinLightLevel": 15000,
   "MaxBrightness": 255,
-  "MinBrightness": 155
+  "MinBrightness": 127
 }
