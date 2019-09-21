@@ -24,6 +24,6 @@
   // Brightness
   "MaxLightLevel": 35000,
   "MinLightLevel": 15000,
-  "MaxBrightness": 255,
+  "MaxBrightness": 254,
   "MinBrightness": 127
 }
