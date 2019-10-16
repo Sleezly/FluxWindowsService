@@ -10,17 +10,14 @@ namespace HueController
         public double Longitude { private get; set; }
         public double Latitude { private get; set; }
 
-        //public int StartColorTemperature { private get; set; }
         public int StopColorTemperature { get; set; }
 
         public int SunriseColorTemperature { get; set; }
         public int SunsetColorTemperature { get; set; }
         public int SolarNoonTemperature { get; set; }
 
-        //public TimeSpan StartTime { private get; set; }
         public TimeSpan StopTime { get; set; }
 
-        //public DateTime StartDate { get { return Today + StartTime; } }
         public DateTime StopDate { get { return Today + StopTime; } }
 
         public DateTime Sunrise { get { return GetSunrise(Today); } }
@@ -150,12 +147,11 @@ namespace HueController
             if (pairs[0].Value == pairs[1].Value)
             {
                 sleepDuration = pairs[1].Key - now;
-                sleepDuration = sleepDuration + TimeSpan.FromMilliseconds(1000 - sleepDuration.Milliseconds);
+                sleepDuration += TimeSpan.FromMilliseconds(1000 - sleepDuration.Milliseconds);
             }
             else
             {
                 double percentComplete = (currentTimeSpan.TotalSeconds - startingTimeSpan.TotalSeconds) / (endingTimeSpan.TotalSeconds - startingTimeSpan.TotalSeconds);
-                //double parabolicAdjustment = 1.0;// Math.Abs(Math.Abs(0.5 - percentComplete) - 0.5) * 4;
 
                 int totalIntervals = Math.Abs(pairs[0].Value - pairs[1].Value);
                 double secondsBetweenIntervals = Math.Abs((endingTimeSpan - startingTimeSpan).TotalSeconds) / totalIntervals;
@@ -201,31 +197,6 @@ namespace HueController
             List<KeyValuePair<DateTime, int>> pairs = GetSortedTimesAndColorTemperaturePairs(now);
 
             return GetColorTemperature(pairs[0].Value, pairs[1].Value, now.Subtract(pairs[0].Key).TotalSeconds, pairs[1].Key.Subtract(pairs[0].Key).TotalSeconds);
-
-            /*
-            double temperatureRange = Math.Abs(pairs[1].Value - pairs[0].Value);
-
-            double totalDurationInSeconds = pairs[1].Key.Subtract(pairs[0].Key).TotalSeconds;
-            double secondsSinceStart = now.Subtract(pairs[0].Key).TotalSeconds;
-
-            double percentageComplete = secondsSinceStart / totalDurationInSeconds;
-            double parabolicAdjustment = Math.Abs(Math.Abs(0.5 - percentageComplete) - 0.5) * 4;
-            double tempOffset = temperatureRange * percentageComplete;
-
-            tempOffset = tempOffset * parabolicAdjustment;
-
-            double temperatureToSet;
-            if (pairs[0].Value > pairs[1].Value)
-            {
-                temperatureToSet = pairs[0].Value - tempOffset;
-            }
-            else
-            {
-                temperatureToSet = pairs[0].Value + tempOffset;
-            }
-
-            return Convert.ToInt32(temperatureToSet);
-            */
         }
 
         /// <summary>

@@ -37,7 +37,7 @@ namespace HueController
         {
             get
             {
-                return _lightLevel;
+                return _lightLevel ?? 25000;
             }
             set
             {
@@ -464,7 +464,7 @@ namespace HueController
                                 LightCommand lightCommand = new LightCommand()
                                 {
                                     On = true,
-                                };
+                            };
 
                                 if (lightDetails.AdjustColorTemperatureAllowed)
                                 {
@@ -510,11 +510,6 @@ namespace HueController
             if (scenesModified.Count() > 0)
             {
                 log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' modified '{scenesModified.Count()}' scenes to color temperature '{colorTemperature}' and brightness '{brightness.ToString()}'.");
-
-                //foreach (KeyValuePair<string, int> pair in scenesModified)
-                //{
-                //    log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' modified '{pair.Value}' lights in the scene named '{pair.Key}' to color temperature '{colorTemperature}' and brightness '{brightness.ToString()}'.");
-                //}
             }
         }
 
