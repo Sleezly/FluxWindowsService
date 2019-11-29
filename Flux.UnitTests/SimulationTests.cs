@@ -1,5 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using HueController.Fakes;using Microsoft.QualityTools.Testing.Fakes;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
+using System.Fakes;
 using System.Threading.Tasks;
 
 namespace HueController.UnitTests
@@ -10,10 +13,21 @@ namespace HueController.UnitTests
         [TestMethod]
         public async Task Simulate()
         {
-            Hue hue = new Hue(0, byte.MaxValue, 30000);
-            await hue.SetFluxConfigValues();
+            using (ShimsContext.Create())
+            {
+                ShimHue.AllInstances.Start = (x) => { };
+                ShimDateTime.NowGet = () => ShimsContext.ExecuteWithoutShims(() => DateTime.Today.AddHours(9));
+                ShimHue.AllInstances.ConnectClientDictionaryOfStringString = (x, bridgeIds) =>
+                {
+                    return Task.FromResult(new List<KeyValuePair<HueBridge, List<LightDetails>>>());
+                };
 
-            await hue.FluxUpdate(false, DateTime.Today.AddHours(9));
+                Hue hue = new Hue();
+
+                await hue.SetFluxConfigValues();
+
+                await hue.FluxUpdate();
+            }
         }
     }
 }

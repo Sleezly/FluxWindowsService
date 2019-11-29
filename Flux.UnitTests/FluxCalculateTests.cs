@@ -11,64 +11,97 @@ namespace HueController.UnitTests
     [TestClass]
     public class HueTests
     {
-        private static readonly byte DefaultLightTestBrightness = 127;
+        private static readonly byte BrightnessDim = 1;
 
-        private static readonly int DefaultLightTestColorTemperature = LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights;
+        private static readonly byte BrightnessMatches = 127;
+        
+        private static readonly int CurrentColorTemperature = LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights;
 
-        private static readonly List<Light> DefaultLightTestGroup = new List<Light>()
+        private static readonly IReadOnlyCollection<Light> DefaultLightTestGroup = new List<Light>()
         {
             new Light() {
-                Id = "WhiteOnly",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.WhiteOnly],
-                State = new State() { On = true, Brightness = DefaultLightTestBrightness } },
+                Id = "WhiteOnly-Dim",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
+                State = new State() { On = true, Brightness = BrightnessDim } },
+
+            new Light() {
+                Id = "WhiteOnly-Matches",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
+                State = new State() { On = true, Brightness = BrightnessMatches } },
 
             new Light() {
                 Id = "WhiteOnly-Off",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.WhiteOnly],
-                State = new State() { On = false, Brightness = DefaultLightTestBrightness } },
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
+                State = new State() { On = false } },
 
             new Light() {
-                Id = "WhiteAmbiance",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.WhiteAmbiance],
-                State = new State() { On = true, Brightness = DefaultLightTestBrightness,
-                    ColorTemperature = DefaultLightTestColorTemperature } },
+                Id = "WhiteAmbiance-Dim",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                State = new State() { On = true, Brightness = BrightnessDim, ColorTemperature = CurrentColorTemperature } },
+
+            new Light() {
+                Id = "WhiteAmbiance-Matches",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
                 Id = "WhiteAmbiance-Off",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.WhiteAmbiance],
-                State = new State() { On = false, Brightness = DefaultLightTestBrightness,
-                    ColorTemperature = DefaultLightTestColorTemperature } },
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                State = new State() { On = false, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
-                Id = "ColorCT",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.Color],
-                State = new State() { On = true, Brightness = DefaultLightTestBrightness,
-                    ColorTemperature = DefaultLightTestColorTemperature, ColorMode = "ct" } },
+                Id = "ColorCT-Dim",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = true, Brightness = BrightnessDim, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
+
+            new Light() {
+                Id = "ColorCT-Matches",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
                 Id = "ColorCT-Off",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.Color],
-                State = new State() { On = false, Brightness = DefaultLightTestBrightness,
-                    ColorTemperature = DefaultLightTestColorTemperature, ColorMode = "ct" } },
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = false, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
-                Id = "ColorXY",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.Color],
-                State = new State() { On = true, Brightness = DefaultLightTestBrightness, ColorMode = "xy",
-                    ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(DefaultLightTestColorTemperature))} },
+                Id = "ColorXY-Dim",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = true, Brightness = BrightnessDim, ColorMode = "xy",
+                    ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
+
+            new Light() {
+                Id = "ColorXY-Matches",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = true, Brightness = BrightnessMatches, ColorMode = "xy",
+                    ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
                 Id = "ColorXYO-ff",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.Color],
-                State = new State() { On = false, Brightness = DefaultLightTestBrightness, ColorMode = "xy",
-                    ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(DefaultLightTestColorTemperature))} },
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = false, Brightness = BrightnessMatches, ColorMode = "xy",
+                    ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
-                Id = "ColorHS",
-                Type = LightDetails.LightTypeNames[LightDetails.LightType.Color],
-                State = new State() { On = true, Brightness = DefaultLightTestBrightness, ColorMode = "hs",
-                    Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(DefaultLightTestColorTemperature)).H),
-                    Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(DefaultLightTestColorTemperature)).S) } },
+                Id = "ColorHS-Dim",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = true, Brightness = BrightnessDim, ColorMode = "hs",
+                    Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
+                    Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
+
+            new Light() {
+                Id = "ColorHS-Matches",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = true, Brightness = BrightnessMatches, ColorMode = "hs",
+                    Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
+                    Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
+
+            new Light() {
+                Id = "ColorHS-Off",
+                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                State = new State() { On = false, Brightness = BrightnessMatches, ColorMode = "hs",
+                    Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
+                    Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
         };
 
 
@@ -78,99 +111,84 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
-        public void CalculateLightsToUpdateNoChange()
+        public void CalculateLightCommands_NoChange()
         {
             using (ShimsContext.Create())
             {
-                IEnumerable<string> result = FluxCalculate.CalculateLightsToUpdate(
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
-                    DefaultLightTestColorTemperature,
-                    DefaultLightTestBrightness);
+                    CurrentColorTemperature,
+                    BrightnessMatches,
+                    BrightnessMatches);
 
-                Assert.AreEqual(0, result.Count(), $"No change is expected. Lights which were updated: {String.Join(", ", result)}");
+                Assert.AreEqual(0, result.Count(), $"No change is expected.");
             }
         }
 
         [TestMethod]
-        public void CalculateLightsToUpdateBrightnessOnlyChange()
+        public void CalculateLightCommands_BrightnessChange()
         {
             using (ShimsContext.Create())
             {
-                IEnumerable<string> result = FluxCalculate.CalculateLightsToUpdate(
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
-                    DefaultLightTestColorTemperature,
-                    255);
+                    CurrentColorTemperature,
+                    BrightnessDim,
+                    BrightnessMatches);
 
-                Assert.AreEqual(1, result.Count(), $"WhiteOnly is the only light expected to be changed. Lights which were updated: {String.Join(", ", result)}");
-                Assert.IsTrue(result.Contains("WhiteOnly"), $"WhiteOnly light expected to be updated.");
+                Assert.AreEqual(1, result.Count(), $"One sets of light groups should be updated for brightness change.");
+                Assert.AreEqual(5, result[BrightnessDim].Count, $"Only brightness matches lights should be updated.");
             }
         }
 
         [TestMethod]
-        public void CalculateLightsToUpdateBeyondAmbianceColorTemperatureNoBrightness()
+        public void CalculateLightCommands_ColorTemperatureChange_WithinWhiteAmbienceRange()
         {
             using (ShimsContext.Create())
             {
-                IEnumerable<string> result = FluxCalculate.CalculateLightsToUpdate(
-                    DefaultLightTestGroup, 
-                    LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights + 5, 
-                    null);
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
+                    DefaultLightTestGroup,
+                    CurrentColorTemperature - 5,
+                    BrightnessMatches,
+                    BrightnessMatches);
 
-                Assert.AreEqual(2, result.Count(), $"Only CT and XY color lights are expected to be updated since the color temperature is above the white-ambiance threshold with no brightness shift specified. Lights which were updated: {String.Join(", ", result)}");
-                Assert.IsTrue(result.Contains("ColorCT"), $"ColorCT light expected to be updated.");
-                Assert.IsTrue(result.Contains("ColorXY"), $"ColorXY light expected to be updated.");
+                Assert.AreEqual(2, result.Count(), $"Two sets of light groups should be updated for color temperature change.");
+                Assert.AreEqual(3, result[BrightnessDim].Count, $"WhiteAmbience, ColorCT and ColorXY should be updated.");
+                Assert.AreEqual(3, result[BrightnessMatches].Count, $"WhiteAmbience, ColorCT and ColorXY should be updated.");
             }
         }
 
         [TestMethod]
-        public void CalculateLightsToUpdateBeyondAmbianceColorTemperatureWithBrightness()
+        public void CalculateLightCommands_ColorTemperatureChange_OutsideWhiteAmbienceRange()
         {
             using (ShimsContext.Create())
             {
-                IEnumerable<string> result = FluxCalculate.CalculateLightsToUpdate(
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
                     LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights + 5,
-                    255);
+                    BrightnessMatches,
+                    BrightnessMatches);
 
-                Assert.AreEqual(3, result.Count(), $"Only White and CT and XY color lights are expected to be updated since the color temperature is above the white-ambiance threshold when a brightness shift is specified. Lights which were updated: {String.Join(", ", result)}");
-                Assert.IsTrue(result.Contains("WhiteOnly"), $"WhiteOnly light expected to be updated.");
-                Assert.IsTrue(result.Contains("ColorCT"), $"ColorCT light expected to be updated.");
-                Assert.IsTrue(result.Contains("ColorXY"), $"ColorXY light expected to be updated.");
+                Assert.AreEqual(2, result.Count(), $"Two sets of light groups should be updated for color temperature change.");
+                Assert.AreEqual(2, result[BrightnessDim].Count, $"ColorCT and ColorXY should be updated.");
+                Assert.AreEqual(2, result[BrightnessMatches].Count, $"ColorCT and ColorXY should be updated.");
             }
         }
 
         [TestMethod]
-        public void CalculateLightsToUpdateWithinAmbianceColorTemperatureNoBrightness()
+        public void CalculateLightCommands_EverythingChanges()
         {
             using (ShimsContext.Create())
             {
-                IEnumerable<string> result = FluxCalculate.CalculateLightsToUpdate(
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
-                    LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights - 5,
-                    null);
+                    CurrentColorTemperature - 5,
+                    25,
+                    BrightnessMatches);
 
-                Assert.AreEqual(3, result.Count(), $"Only WhiteAmbiance, CT and XY color lights are expected to be updated since the color temperature is within the white-ambiance threshold and no brightness shift was specified. Lights which were updated: {String.Join(", ", result)}");
-                Assert.IsTrue(result.Contains("WhiteAmbiance"), $"WhiteAmbiance light expected to be updated.");
-                Assert.IsTrue(result.Contains("ColorCT"), $"ColorCT light expected to be updated.");
-                Assert.IsTrue(result.Contains("ColorXY"), $"ColorXY light expected to be updated.");
-            }
-        }
-
-        [TestMethod]
-        public void CalculateLightsToUpdateWithinAmbianceColorTemperatureWithBrightness()
-        {
-            using (ShimsContext.Create())
-            {
-                IEnumerable<string> result = FluxCalculate.CalculateLightsToUpdate(
-                    DefaultLightTestGroup,
-                    LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights - 5,
-                    255);
-
-                Assert.AreEqual(4, result.Count(), $"All except HS color lights are expected to be updated since the color temperature is within the white-ambiance threshold and a brightness shift was specified. Lights which were updated: {String.Join(", ", result)}");
-                Assert.IsTrue(result.Contains("WhiteOnly"), $"WhiteOnly light expected to be updated.");
-                Assert.IsTrue(result.Contains("WhiteAmbiance"), $"WhiteAmbiance light expected to be updated.");
-                Assert.IsTrue(result.Contains("ColorCT"), $"ColorCT light expected to be updated.");
-                Assert.IsTrue(result.Contains("ColorXY"), $"ColorXY light expected to be updated.");
+                Assert.AreEqual(2, result.Count(), $"Two sets of light groups should be updated for brightness and color temperature change.");
+                Assert.AreEqual(3, result[BrightnessDim].Count, $"Lights which need color temperature updates should be updated.");
+                Assert.AreEqual(5, result[25].Count, $"All should be updated.");
             }
         }
     }

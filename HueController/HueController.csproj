@@ -46,7 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FluxCalculate.cs" />
+    <Compile Include="Extensions\LightExtensions.cs" />
     <Compile Include="Utilities\ColorConverter.cs" />
     <Compile Include="Utilities\HSV.cs" />
     <Compile Include="Utilities\RGB.cs" />

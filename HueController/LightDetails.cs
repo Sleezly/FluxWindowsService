@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Q42.HueApi;
+using System;
 using System.Collections.Generic;
 
 namespace HueController
@@ -11,13 +12,6 @@ namespace HueController
             WhiteAmbiance,
             Color,
         }
-
-        public static Dictionary<LightType, string> LightTypeNames = new Dictionary<LightType, string>()
-        {
-            { LightType.WhiteOnly, "Dimmable light" },
-            { LightType.WhiteAmbiance, "Color temperature light" },
-            { LightType.Color, "Extended color light" },
-        };
 
         public string Id { get; set; }
 
@@ -45,23 +39,25 @@ namespace HueController
         public const int MinAllowedColorTemperatureForWhiteAndColorLights = 154;
 
         /// <summary>
-        /// 
+        /// Maximum allowed brightness
         /// </summary>
-        /// <param name="color"></param>
+        public const byte MaxBrightness = 248;
+
+        /// <summary>
+        /// Normalizes the given brightness value.
+        /// </summary>
+        /// <param name="brightness"></param>
         /// <returns></returns>
-        public static bool IsInAllowedColorRange(string type, int color)
-        {
-            return IsInAllowedColorRange(TranslateStringToLightType(type), color);
-        }
+        public static byte NormalizeBrightness(byte brightness) => (byte)(brightness / 8 * 8);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="color"></param>
         /// <returns></returns>
-        public static int? NormalizeColorForAllowedColorRange(LightType type, int color)
+        public static int? NormalizeColorForAllowedColorRange(LightType lightType, int color)
         {
-            switch (type)
+            switch (lightType)
             {
                 case LightType.Color:
                     return Math.Min(MaxAllowedColorTemperatureForWhiteAndColorLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
@@ -73,54 +69,8 @@ namespace HueController
                     return null;
 
                 default:
-                    throw new ArgumentException($"Unsupported light type '{type}'.");
+                    throw new ArgumentException($"Unsupported light type '{lightType}'.");
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="color"></param>
-        /// <returns></returns>
-        public static bool IsInAllowedColorRange(LightType type, int color)
-        {
-            switch (type)
-            {
-                case LightType.Color:
-                    return color <= MaxAllowedColorTemperatureForWhiteAndColorLights && color >= MinAllowedColorTemperatureForWhiteAndColorLights;
-
-                case LightType.WhiteAmbiance:
-                    return color <= MaxAllowedColorTemperatureForWhiteAmbianceLights && color >= MinAllowedColorTemperatureForWhiteAndColorLights;
-
-                case LightType.WhiteOnly:
-                    return false;
-
-                default:
-                    throw new ArgumentException($"Unsupported light type '{type}'.");
-            }
-        }
-
-        /// <summary>
-        /// Converts a string to a light bulb type.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static LightType TranslateStringToLightType(string type)
-        {
-            if (string.Equals("Extended color light", type, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return LightType.Color;
-            }
-            else if (string.Equals("Color temperature light", type, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return LightType.WhiteAmbiance;
-            }
-            else if (string.Equals("Dimmable light", type, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return LightType.WhiteOnly;
-            }
-
-            throw new ArgumentException($"No known mapping for light type '{type}'.");
         }
     }
 }
