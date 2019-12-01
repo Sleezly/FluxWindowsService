@@ -15,7 +15,6 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                ShimHue.AllInstances.Start = (x) => { };
                 ShimDateTime.NowGet = () => ShimsContext.ExecuteWithoutShims(() => DateTime.Today.AddHours(9));
                 ShimHue.AllInstances.ConnectClientDictionaryOfStringString = (x, bridgeIds) =>
                 {

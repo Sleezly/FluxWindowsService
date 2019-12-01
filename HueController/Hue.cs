@@ -28,7 +28,10 @@ namespace HueController
 
         private List<KeyValuePair<HueBridge, List<LightDetails>>> HueClients = null;
 
-        private CancellationTokenSource CancellationToken = null;
+        /// <summary>
+        /// Flux Update Worker.
+        /// </summary>
+        private CancellationTokenSource FluxUpdateWorkerCancellationToken = null;
 
         /// <summary>
         /// Light Level property
@@ -83,8 +86,8 @@ namespace HueController
             {
                 return new HueDetails()
                 {
-                    FluxStatus = Flux.Status,
-                    On = CancellationToken != null && !CancellationToken.IsCancellationRequested,
+                    FluxStatus = Flux?.Status ?? new FluxStatus(),
+                    On = FluxUpdateWorkerCancellationToken != null && !FluxUpdateWorkerCancellationToken.IsCancellationRequested,
                     LastColorTemperature = LastColorTemperature,
                     LastBrightness = LastBrightness,
                     LastLightlevel = Convert.ToInt32(LightLevel),
@@ -95,50 +98,57 @@ namespace HueController
         }
 
         /// <summary>
+        /// Instiantiates the Flux client.
+        /// </summary>
+        /// <param name="hueConfig"></param>
+        public Hue()
+        {
+        }
+
+        /// <summary>
+        /// Interacts with the Hue client.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="lightLevel"></param>
+        public async Task MakeRequest(bool start, double lightLevel)
+        {
+            LightLevel = lightLevel;
+
+            if (start)
+            {
+                if (FluxUpdateWorkerCancellationToken == null || FluxUpdateWorkerCancellationToken.IsCancellationRequested)
+                {
+                    await Start();
+                }
+            }
+            else
+            {
+                if (HueClients != null && HueClients.Any() && FluxUpdateWorkerCancellationToken != null && !FluxUpdateWorkerCancellationToken.IsCancellationRequested)
+                {
+                    Stop();
+                }
+            }
+        }
+
+        /// <summary>
         /// Start the Flux worker.
         /// </summary>
-        public void Start()
+        private async Task Start()
         {
-            if (CancellationToken != null && !CancellationToken.IsCancellationRequested)
-            {
-                throw new ArgumentException($"'{nameof(Start)}' should not be invoked twice without first invoking '{nameof(Stop)}'.");
-            }
-
             // Parse the config JSON on the fly
-            SetFluxConfigValues().GetAwaiter().GetResult();
+            await SetFluxConfigValues();
 
-            CancellationToken = new CancellationTokenSource();
-
-            Task.Factory.StartNew(() => FluxUpdateThread(CancellationToken.Token));
-            
-            //Task.Run(() => FluxUpdateThread(CancellationToken.Token), CancellationToken.Token);
+            // Create the flux worker thread
+            FluxUpdateWorkerCancellationToken = new CancellationTokenSource();
+            Task fluxUpdateWorkerTask = Task.Run(() => FluxUpdateThread(FluxUpdateWorkerCancellationToken.Token));
         }
 
         /// <summary>
         /// Discontinue Flux updates.
         /// </summary>
-        public void Stop()
+        private void Stop()
         {
-            if (this.HueClients == null || this.HueClients.Count() == 0)
-            {
-                throw new ArgumentException($"Lights must be added with '{nameof(AddLights)}' prior to invoking '{nameof(Stop)}'.");
-            }
-
-            if (CancellationToken == null || CancellationToken.IsCancellationRequested)
-            {
-                throw new ArgumentException($"'{nameof(Stop)}' should only be invoked after first invoking '{nameof(Start)}'.");
-            }
-
-            CancellationToken.Cancel();
-        }
-
-        /// <summary>
-        /// Instiantiates the Flux client.
-        /// </summary>
-        /// <param name="hueConfig"></param>
-        internal Hue()
-        {
-            Start();
+            FluxUpdateWorkerCancellationToken.Cancel();
         }
 
         /// <summary>
@@ -176,36 +186,47 @@ namespace HueController
             this.MaxLightLevel = fluxConfig.MaxLightLevel;
             this.MinLightLevel= fluxConfig.MinLightLevel;
 
-            log.Info($"'{nameof(Start)}' Sunrise will occur at '{Flux.Sunrise}' and color '{Flux.SunriseColorTemperature}'.");
-            log.Info($"'{nameof(Start)}' Noon will occur at'{Flux.SolarNoon}' and color '{Flux.SolarNoonTemperature}'.");
-            log.Info($"'{nameof(Start)}' Sunset will occur at '{Flux.Sunset}' and color '{Flux.SunsetColorTemperature}'.");
-            log.Info($"'{nameof(Start)}' StopDate will occur at '{Flux.StopDate}' and color '{Flux.StopColorTemperature}'.");
+            log.Info($"'{nameof(SetFluxConfigValues)}' Sunrise will occur at '{Flux.Sunrise}' and color '{Flux.SunriseColorTemperature}'.");
+            log.Info($"'{nameof(SetFluxConfigValues)}' Noon will occur at'{Flux.SolarNoon}' and color '{Flux.SolarNoonTemperature}'.");
+            log.Info($"'{nameof(SetFluxConfigValues)}' Sunset will occur at '{Flux.Sunset}' and color '{Flux.SunsetColorTemperature}'.");
+            log.Info($"'{nameof(SetFluxConfigValues)}' StopDate will occur at '{Flux.StopDate}' and color '{Flux.StopColorTemperature}'.");
 
-            log.Info($"'{nameof(Start)}' Brightness levels to vary between '{MinBrightness}' and '{MaxBrightness}'.");
-            log.Info($"'{nameof(Start)}' Lightlevels to vary between '{MinLightLevel}' and '{MaxLightLevel}'.");
+            log.Info($"'{nameof(SetFluxConfigValues)}' Brightness levels to vary between '{MinBrightness}' and '{MaxBrightness}'.");
+            log.Info($"'{nameof(SetFluxConfigValues)}' Lightlevels to vary between '{MinLightLevel}' and '{MaxLightLevel}'.");
         }
-        
+
         /// <summary>
-        /// Flux worker thread
+        /// Establishes a connection to all Hue Hubs on the network.
         /// </summary>
-        private async void FluxUpdateThread(CancellationToken cancellationToken)
+        internal async Task<List<KeyValuePair<HueBridge, List<LightDetails>>>> ConnectClient(Dictionary<string, string> bridgeIds)
         {
-            log.Info($"'{nameof(FluxUpdateThread)}' now running.");
+            IBridgeLocator locator = new HttpBridgeLocator();
 
-            // Infinite loop until told to stop by master thread
-            while (!cancellationToken.IsCancellationRequested)
+            IEnumerable<LocatedBridge> bridgeIps = await locator.LocateBridgesAsync(TimeSpan.FromSeconds(15));
+
+            List<KeyValuePair<HueBridge, List<LightDetails>>> clients = new List<KeyValuePair<HueBridge, List<LightDetails>>>();
+
+            foreach (LocatedBridge bridge in bridgeIps)
             {
-                TimeSpan currentSleepDuration = await FluxUpdate();
+                log.Info($"{nameof(ConnectClient)} Found bridge with ID '{bridge.BridgeId}' at '{bridge.IpAddress}'.");
 
-                // Wait for the next interval which will require an update
-                await Task.Delay(currentSleepDuration, cancellationToken).ContinueWith(tsk =>
-                    { 
-                        log.Info($"'{nameof(FluxUpdateThread)}' now in '{tsk.Status}'.");
-                    });
+                LocalHueClient client = new LocalHueClient(bridge.IpAddress);
+
+                string secret = bridgeIds.First(a => a.Key.Equals(bridge.BridgeId, StringComparison.InvariantCultureIgnoreCase)).Value;
+
+                client.Initialize(secret);
+
+                HueBridge hueBridge = new HueBridge
+                {
+                    Client = client,
+                    BridgeId = bridge.BridgeId,
+                    IpAddress = bridge.IpAddress
+                };
+
+                clients.Add(new KeyValuePair<HueBridge, List<LightDetails>>(hueBridge, new List<LightDetails>()));
             }
 
-            // We're no longer running so allow another thread to be kicked off later
-            log.Info($"'{nameof(FluxUpdateThread)}' now terminating.");
+            return clients;
         }
 
         /// <summary>
@@ -314,6 +335,7 @@ namespace HueController
                 }
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -321,71 +343,125 @@ namespace HueController
         /// <param name="lightsToScan"></param>
         /// <param name="colorTemperature"></param>
         /// <param name="transitiontime"></param>
-        public static Dictionary<byte, List<string>> CalculateLightCommands(IEnumerable<Light> lights, int newColorTemperature, byte newBrightness, byte lastBrightness)
+        internal static Dictionary<byte, List<string>> CalculateLightCommands(IEnumerable<Light> lights, int newColorTemperature, byte newBrightness, byte lastBrightness)
         {
             // Lights to update
             Dictionary<byte, List<string>> lightsCommands = new Dictionary<byte, List<string>>();
 
             double[] newColorTemperatureAsXY = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(newColorTemperature));
 
-            foreach (Light light in lights)
+            // Group all lights by common name to ensure all like-named light group have a single, common brightness value.
+            IEnumerable<IGrouping<string, Light>> lightGroups = lights
+                .GroupBy(light =>
+                    light.Name.Trim().LastIndexOf(" ") > 0 ?
+                        light.Name.Substring(0, light.Name.Trim().LastIndexOf(" ")) :
+                        light.Name);
+                    //Regex.Replace(light.Name, @"[\d-]", string.Empty)
+
+            foreach (IGrouping<string, Light> lightGroup in lightGroups)
             {
-                if (light.State.On)
+                byte brightnessMostCommon = lightGroup
+                    .GroupBy(x => x.State.Brightness)
+                    // Never choose a Zero brightness as the most common.
+                    .OrderByDescending(x => x.All(y => y.State.Brightness != 0))
+                    // Get the most commonly occurring value, if any.
+                    .ThenByDescending(x => x.Count())
+                    // Choose the value which matches the new brightness, if present.
+                    .ThenByDescending(x => x.All(y => y.State.Brightness == newBrightness))
+                    // Prefer the highest value as tie-breaker.
+                    .ThenByDescending(x => x.First().State.Brightness)
+                    .Select(x => x.Key)
+                    .First();
+
+                byte brightnessToSet = 
+                (
+                    // Last brightness was previously set by Flux.
+                    brightnessMostCommon == lastBrightness || 
+                    // Brightnes is at or near max brightness.
+                    brightnessMostCommon.CompareTo(247) >= 0 ||
+                    // Brightness has an invalid brightness value.
+                    brightnessMostCommon == 0
+                ) ? newBrightness : brightnessMostCommon;
+
+                log.Debug($"'{nameof(CalculateLightCommands)}' {lightGroup.Key} has common brightness value '{brightnessMostCommon}'. Setting to '{brightnessToSet}'.");
+
+                foreach (Light light in lightGroup)
                 {
-                    bool needToSetColorTemperature = false;
-
-                    bool needToSetBrightness =
-                        // A brightness change is necessary to get reach the new desired brightness.
-                        (light.State.Brightness != newBrightness &&
-                        // Only adjust brightness when brightness level was previously modified here.
-                        (light.State.Brightness == lastBrightness || light.State.Brightness == LightDetails.MaxBrightness));
-
-
-                    if (light.SupportsColorOrTemperatureChange())
+                    if (light.State.On)
                     {
-                        switch (light.State.ColorMode)
+                        bool needToSetBrightness = light.State.Brightness != brightnessToSet;
+                        
+                        bool needToSetColorTemperature = false;
+
+                        if (light.SupportsColorOrTemperatureChange())
                         {
-                            case "xy":
-                                {
-                                    double xyDifference = Math.Abs(light.State.ColorCoordinates[0] - newColorTemperatureAsXY[0]) + Math.Abs(light.State.ColorCoordinates[1] - newColorTemperatureAsXY[1]);
-                                    if (xyDifference > 0.001 && xyDifference < 0.15)
+                            switch (light.State.ColorMode)
+                            {
+                                case "xy":
                                     {
-                                        needToSetColorTemperature = true;
+                                        double xyDifference = Math.Abs(light.State.ColorCoordinates[0] - newColorTemperatureAsXY[0]) + Math.Abs(light.State.ColorCoordinates[1] - newColorTemperatureAsXY[1]);
+                                        if (xyDifference > 0.001 && xyDifference < 0.15)
+                                        {
+                                            needToSetColorTemperature = true;
+                                        }
                                     }
-                                }
-                                break;
+                                    break;
 
-                            case "hs":
-                                // Hue & Saturation is always to be ignored by Flux.
-                                needToSetColorTemperature = false;
-                                break;
+                                case "hs":
+                                    // Hue & Saturation is always to be ignored by Flux.
+                                    needToSetColorTemperature = false;
+                                    break;
 
-                            case "ct":
-                            default:
-                                // Only set ColorTemp values if there is a change.
-                                needToSetColorTemperature = (light.State.ColorTemperature != newColorTemperature);
-                                break;
+                                case "ct":
+                                default:
+                                    // Only set ColorTemp values if there's an allowable change.
+                                    needToSetColorTemperature = (light.State.ColorTemperature != newColorTemperature) && light.IsInAllowedColorRange(newColorTemperature);
+                                    break;
+                            }
                         }
-                    }
 
-                    // Only adjust when necessary.
-                    if (needToSetBrightness || (needToSetColorTemperature && light.IsInAllowedColorRange(newColorTemperature)))
-                    {
-                        byte brightnessToSet = LightDetails.NormalizeBrightness(needToSetBrightness ? newBrightness : light.State.Brightness);
+                        // Only send a light adjustment command when needed.
+                        if (needToSetColorTemperature || needToSetBrightness)
+                        {
+                           // byte brightnessToSet = LightDetails.NormalizeBrightness(needToSetBrightness ? newBrightness : light.State.Brightness);
 
-                        if (lightsCommands.ContainsKey(brightnessToSet))
-                        {
-                            lightsCommands[brightnessToSet].Add(light.Id);
-                        }
-                        else
-                        {
-                            lightsCommands[brightnessToSet] = new List<string>() { light.Id };
+                            if (lightsCommands.ContainsKey(brightnessToSet))
+                            {
+                                lightsCommands[brightnessToSet].Add(light.Id);
+                            }
+                            else
+                            {
+                                lightsCommands[brightnessToSet] = new List<string>() { light.Id };
+                            }
                         }
                     }
                 }
             }
 
             return lightsCommands;
+        }
+
+        /// <summary>
+        /// Flux worker thread
+        /// </summary>
+        private async void FluxUpdateThread(CancellationToken cancellationToken)
+        {
+            log.Info($"'{nameof(FluxUpdateThread)}' now running.");
+
+            // Infinite loop until told to stop by master thread
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                TimeSpan currentSleepDuration = await FluxUpdate();
+
+                // Wait for the next interval which will require an update
+                await Task.Delay(currentSleepDuration, cancellationToken).ContinueWith(tsk =>
+                {
+                    log.Info($"'{nameof(FluxUpdateThread)}' now in '{tsk.Status}'.");
+                });
+            }
+
+            // We're no longer running so allow another thread to be kicked off later
+            log.Info($"'{nameof(FluxUpdateThread)}' now terminating.");
         }
 
         /// <summary>
@@ -418,12 +494,12 @@ namespace HueController
 
                 log.Debug($"LightLevel: {LightLevel}. LightLevel Percent: {lightLevelPercent.ToString()}. Brightness: {(byte)Math.Floor(this.MinBrightness + (this.MaxBrightness - this.MinBrightness) * (1.0 - lightLevelPercent))}.");
 
-                return LightDetails.NormalizeBrightness((byte)Math.Floor(this.MinBrightness + (this.MaxBrightness - this.MinBrightness) * (1.0 - lightLevelPercent)));
+                return (byte)Math.Floor(this.MinBrightness + (this.MaxBrightness - this.MinBrightness) * (1.0 - lightLevelPercent));
             }
             else
             {
                 // Nightime
-                return LightDetails.NormalizeBrightness(this.MaxBrightness);
+                return this.MaxBrightness;
             }
         }
 
@@ -502,7 +578,7 @@ namespace HueController
 
                                 if (lightCommand.Brightness.HasValue)
                                 {
-                                    lightCommand.Brightness = LightDetails.NormalizeBrightness(lightCommand.Brightness.Value);
+                                    lightCommand.Brightness = lightCommand.Brightness.Value;
                                 }
 
                                 try
@@ -536,40 +612,6 @@ namespace HueController
             {
                 log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' modified '{scenesModified.Count()}' scenes to color temperature '{colorTemperature}' and brightness '{brightness.ToString()}'.");
             }
-        }
-
-        /// <summary>
-        /// Establishes a connection to all Hue Hubs on the network.
-        /// </summary>
-        internal async Task<List<KeyValuePair<HueBridge, List<LightDetails>>>> ConnectClient(Dictionary<string, string> bridgeIds)
-        {
-            IBridgeLocator locator = new HttpBridgeLocator();
-
-            IEnumerable<LocatedBridge> bridgeIps = await locator.LocateBridgesAsync(TimeSpan.FromSeconds(15));
-
-            List<KeyValuePair<HueBridge, List<LightDetails>>> clients = new List<KeyValuePair<HueBridge, List<LightDetails>>>();
-
-            foreach (LocatedBridge bridge in bridgeIps)
-            {
-                log.Info($"{nameof(ConnectClient)} Found bridge with ID '{bridge.BridgeId}' at '{bridge.IpAddress}'.");
-
-                LocalHueClient client = new LocalHueClient(bridge.IpAddress);
-
-                string secret = bridgeIds.First(a => a.Key.Equals(bridge.BridgeId, StringComparison.InvariantCultureIgnoreCase)).Value;
-
-                client.Initialize(secret);
-
-                HueBridge hueBridge = new HueBridge
-                {
-                    Client = client,
-                    BridgeId = bridge.BridgeId,
-                    IpAddress = bridge.IpAddress
-                };
-
-                clients.Add(new KeyValuePair<HueBridge, List<LightDetails>>(hueBridge, new List<LightDetails>()));
-            }
-
-            return clients;
         }
 
         /// <summary>

@@ -11,99 +11,98 @@ namespace HueController.UnitTests
     [TestClass]
     public class HueTests
     {
-        private static readonly byte BrightnessDim = 1;
+        private static readonly byte BrightnessDim = 8;
 
-        private static readonly byte BrightnessMatches = 127;
+        private static readonly byte BrightnessMatches = 128;
         
         private static readonly int CurrentColorTemperature = LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights;
 
         private static readonly IReadOnlyCollection<Light> DefaultLightTestGroup = new List<Light>()
         {
             new Light() {
-                Id = "WhiteOnly-Dim",
+                Name = "WhiteOnly-Dim",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
                 State = new State() { On = true, Brightness = BrightnessDim } },
 
             new Light() {
-                Id = "WhiteOnly-Matches",
+                Name = "WhiteOnly-Matches",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
                 State = new State() { On = true, Brightness = BrightnessMatches } },
 
             new Light() {
-                Id = "WhiteOnly-Off",
+                Name = "WhiteOnly-Off",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
                 State = new State() { On = false } },
 
             new Light() {
-                Id = "WhiteAmbiance-Dim",
+                Name = "WhiteAmbiance-Dim",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
-                Id = "WhiteAmbiance-Matches",
+                Name = "WhiteAmbiance-Matches",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
-                Id = "WhiteAmbiance-Off",
+                Name = "WhiteAmbiance-Off",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
-                Id = "ColorCT-Dim",
+                Name = "ColorCT-Dim",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
-                Id = "ColorCT-Matches",
+                Name = "ColorCT-Matches",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
-                Id = "ColorCT-Off",
+                Name = "ColorCT-Off",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
-                Id = "ColorXY-Dim",
+                Name = "ColorXY-Dim",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorMode = "xy",
                     ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
-                Id = "ColorXY-Matches",
+                Name = "ColorXY-Matches",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorMode = "xy",
                     ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
-                Id = "ColorXYO-ff",
+                Name = "ColorXYO-ff",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorMode = "xy",
                     ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
-                Id = "ColorHS-Dim",
+                Name = "ColorHS-Dim",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorMode = "hs",
                     Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
                     Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
 
             new Light() {
-                Id = "ColorHS-Matches",
+                Name = "ColorHS-Matches",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorMode = "hs",
                     Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
                     Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
 
             new Light() {
-                Id = "ColorHS-Off",
+                Name = "ColorHS-Off",
                 Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorMode = "hs",
                     Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
                     Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
         };
-
 
         [TestInitialize]
         public void TestInitialize()
@@ -111,7 +110,7 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
-        public void CalculateLightCommands_NoChange()
+        public void CalculateLightCommands_AllLightStyles_NoChange()
         {
             using (ShimsContext.Create())
             {
@@ -126,7 +125,7 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
-        public void CalculateLightCommands_BrightnessChange()
+        public void CalculateLightCommands_AllLightStyles_BrightnessChange()
         {
             using (ShimsContext.Create())
             {
@@ -142,7 +141,7 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
-        public void CalculateLightCommands_ColorTemperatureChange_WithinWhiteAmbienceRange()
+        public void CalculateLightCommands_AllLightStyles_ColorTemperatureChange_WithinWhiteAmbienceRange()
         {
             using (ShimsContext.Create())
             {
@@ -159,7 +158,7 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
-        public void CalculateLightCommands_ColorTemperatureChange_OutsideWhiteAmbienceRange()
+        public void CalculateLightCommands_AllLightStyles_ColorTemperatureChange_OutsideWhiteAmbienceRange()
         {
             using (ShimsContext.Create())
             {
@@ -176,7 +175,7 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
-        public void CalculateLightCommands_EverythingChanges()
+        public void CalculateLightCommands_AllLightStyles_EverythingChanges()
         {
             using (ShimsContext.Create())
             {
@@ -189,6 +188,167 @@ namespace HueController.UnitTests
                 Assert.AreEqual(2, result.Count(), $"Two sets of light groups should be updated for brightness and color temperature change.");
                 Assert.AreEqual(3, result[BrightnessDim].Count, $"Lights which need color temperature updates should be updated.");
                 Assert.AreEqual(5, result[25].Count, $"All should be updated.");
+            }
+        }
+
+        [TestMethod]
+        public void CalculateLightCommands_BrightnessGroupMatch_0()
+        {
+            using (ShimsContext.Create())
+            {
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
+                    new List<Light>()
+                    {
+                        new Light() {
+                            Name = "Test 6",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 4",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = (byte)(BrightnessMatches - 4), ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 5",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 3",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = (byte)(BrightnessMatches + 2), ColorTemperature = CurrentColorTemperature } },
+                    },
+                    CurrentColorTemperature,
+                    BrightnessMatches,
+                    BrightnessMatches);
+
+                Assert.AreEqual(1, result.Count(), $"One light group expected since all lights share the same common name.");
+                Assert.IsTrue(result.ContainsKey((byte)(BrightnessMatches + 2)), $"The single light group should match the higest valued brightness byte.");
+                Assert.AreEqual(3, result[(byte)(BrightnessMatches + 2)].Count, $"The three lights which don't match the most common brightness should be adjusted.");
+            }
+        }
+
+        [TestMethod]
+        public void CalculateLightCommands_BrightnessGroupMatch_1()
+        {
+            using (ShimsContext.Create())
+            {
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
+                    new List<Light>()
+                    {
+                        new Light() {
+                            Name = "Test 4",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = (byte)(BrightnessMatches + 2), ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 5",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 2",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 3",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = (byte)(BrightnessMatches - 4), ColorTemperature = CurrentColorTemperature } },
+                    },
+                    CurrentColorTemperature,
+                    BrightnessMatches,
+                    BrightnessMatches);
+
+                Assert.AreEqual(1, result.Count(), $"One light group expected since all lights share the same common name.");
+                Assert.IsTrue(result.ContainsKey(BrightnessMatches), $"The single light group should be the most common name.");
+                Assert.AreEqual(3, result[BrightnessMatches].Count, $"The three lights which don't match the most common brightness should be adjusted.");
+            }
+        }
+
+        [TestMethod]
+        public void CalculateLightCommands_BrightnessGroupMatch_2()
+        {
+            using (ShimsContext.Create())
+            {
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
+                    new List<Light>()
+                    {
+                        new Light() {
+                            Name = "Test 4",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = (byte)(BrightnessMatches + 2), ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 1",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 5",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 2",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 3",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = (byte)(BrightnessMatches - 4), ColorTemperature = CurrentColorTemperature } },
+                    },
+                    CurrentColorTemperature,
+                    BrightnessMatches,
+                    BrightnessMatches);
+
+                Assert.AreEqual(1, result.Count(), $"One light group expected since all lights share the same common name.");
+                Assert.IsTrue(result.ContainsKey(BrightnessMatches), $"The single light group should be the most common name.");
+                Assert.AreEqual(3, result[BrightnessMatches].Count, $"The three lights which don't match the most common brightness should be adjusted.");
+            }
+        }
+
+
+        [DataTestMethod]
+        [DataRow(0)]
+        [DataRow(1)]
+        [DataRow(2)]
+        [DataRow(128)]
+        [DataRow(129)]
+        [DataRow(246)]
+        [DataRow(247)]
+        [DataRow(248)]
+        [DataRow(254)]
+        [DataRow(255)]
+        public void CalculateLightCommands_Brightness_Single(int currentBrightness)
+        {
+            const byte newBrightness = 128;
+
+            using (ShimsContext.Create())
+            {
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
+                    new List<Light>()
+                    {
+                        new Light() {
+                            Name = "Test",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = (byte)currentBrightness, ColorTemperature = CurrentColorTemperature } },
+                    },
+                    CurrentColorTemperature,
+                    newBrightness,
+                    newBrightness);
+
+                bool brightnessChangeExpected = (currentBrightness == 0 || currentBrightness >= 247) && currentBrightness != newBrightness;
+
+                Assert.AreEqual(brightnessChangeExpected ? 1 : 0, result.Count(), $"One light group expected since change is expected.");
+
+                if (brightnessChangeExpected)
+                {
+                    Assert.AreEqual(newBrightness, result.First().Key, $"Brightness level should be new level.");
+                    Assert.AreEqual(1, result.First().Value.Count, $"1 light in group expected.");
+                }
             }
         }
     }

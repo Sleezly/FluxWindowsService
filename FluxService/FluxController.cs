@@ -27,16 +27,19 @@ namespace FluxService
         [Route("api/flux")]
         public async Task<IHttpActionResult> Post()
         {
-            string request = await Request.Content.ReadAsStringAsync();
-
-            HuePost huePost = JsonConvert.DeserializeObject<HuePost>(request);
-
-            if (fluxServiceContract.Post(huePost.On.Equals("on", System.StringComparison.InvariantCultureIgnoreCase), huePost.LightLevel))
+            try
             {
+                string request = await Request.Content.ReadAsStringAsync();
+                HuePost huePost = JsonConvert.DeserializeObject<HuePost>(request);
+
+                await fluxServiceContract.Post(huePost.On.Equals("on", System.StringComparison.InvariantCultureIgnoreCase), huePost.LightLevel);
+
                 return Ok();
             }
-
-            return BadRequest();
+            catch
+            {
+                return BadRequest();
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using HueController;
 using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace FluxService
 {
@@ -10,6 +11,6 @@ namespace FluxService
         HueDetails Get();
 
         [OperationContract]
-        bool Post(bool On, double LightLevel);
+        Task Post(bool On, double LightLevel);
     }
 }

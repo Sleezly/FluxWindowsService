@@ -1,10 +1,11 @@
 ﻿using HueController;
+using System.Threading.Tasks;
 
 namespace FluxService
 {
     public class FluxServiceContract : IFluxServiceContract
     {
-        Hue hue = Hue.GetOrCreate();
+        private readonly Hue hue = Hue.GetOrCreate();
         
         /// <summary>
         /// Retrieval of Hue Status info.
@@ -16,28 +17,13 @@ namespace FluxService
         }
 
         /// <summary>
-        /// Turn flux service On or Off.
+        /// Makes a request to the Flux service.
         /// </summary>
         /// <param name="On"></param>
         /// <returns></returns>
-        public bool Post(bool On, double LightLevel)
+        public async Task Post(bool on, double lightLevel)
         {
-            hue.LightLevel = LightLevel;
-
-            // Ensure current status does not match requested state
-            if (hue.Status.On != On)
-            {
-                if (On)
-                {
-                    hue.Start();
-                }
-                else
-                {
-                    hue.Stop();
-                }
-            }
-
-            return true;
+            await hue.MakeRequest(on, lightLevel);
         }
     }
 }

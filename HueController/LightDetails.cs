@@ -41,14 +41,7 @@ namespace HueController
         /// <summary>
         /// Maximum allowed brightness
         /// </summary>
-        public const byte MaxBrightness = 248;
-
-        /// <summary>
-        /// Normalizes the given brightness value.
-        /// </summary>
-        /// <param name="brightness"></param>
-        /// <returns></returns>
-        public static byte NormalizeBrightness(byte brightness) => (byte)(brightness / 8 * 8);
+        public const byte MaxBrightness = 254;
 
         /// <summary>
         /// 
