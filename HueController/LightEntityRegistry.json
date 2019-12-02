@@ -141,12 +141,12 @@
       "ControlTemperature": true
     },
     {
-      "Name": "master go",
+      "Name": "master accent go",
       "ControlBrightness": true,
       "ControlTemperature": true
     },
     {
-      "Name": "master lamp",
+      "Name": "master bedside lamp",
       "ControlBrightness": true,
       "ControlTemperature": true
     },
@@ -161,7 +161,7 @@
       "ControlTemperature": true
     },
     {
-      "Name": "master headboard",
+      "Name": "master accent headboard",
       "ControlBrightness": true,
       "ControlTemperature": true
     },

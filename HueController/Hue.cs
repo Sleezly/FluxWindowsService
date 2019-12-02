@@ -31,6 +31,7 @@ namespace HueController
         /// <summary>
         /// Flux Update Worker.
         /// </summary>
+        private Task FluxUpdateWorkerTask = null;
         private CancellationTokenSource FluxUpdateWorkerCancellationToken = null;
 
         /// <summary>
@@ -87,7 +88,7 @@ namespace HueController
                 return new HueDetails()
                 {
                     FluxStatus = Flux?.Status ?? new FluxStatus(),
-                    On = FluxUpdateWorkerCancellationToken != null && !FluxUpdateWorkerCancellationToken.IsCancellationRequested,
+                    On = FluxUpdateWorkerTask != null && FluxUpdateWorkerCancellationToken != null && !FluxUpdateWorkerCancellationToken.IsCancellationRequested,
                     LastColorTemperature = LastColorTemperature,
                     LastBrightness = LastBrightness,
                     LastLightlevel = Convert.ToInt32(LightLevel),
@@ -116,17 +117,11 @@ namespace HueController
 
             if (start)
             {
-                if (FluxUpdateWorkerCancellationToken == null || FluxUpdateWorkerCancellationToken.IsCancellationRequested)
-                {
-                    await Start();
-                }
+                await Start();
             }
             else
             {
-                if (HueClients != null && HueClients.Any() && FluxUpdateWorkerCancellationToken != null && !FluxUpdateWorkerCancellationToken.IsCancellationRequested)
-                {
-                    Stop();
-                }
+                await Stop();
             }
         }
 
@@ -135,20 +130,34 @@ namespace HueController
         /// </summary>
         private async Task Start()
         {
-            // Parse the config JSON on the fly
-            await SetFluxConfigValues();
+            if (FluxUpdateWorkerCancellationToken == null ||
+                FluxUpdateWorkerCancellationToken.IsCancellationRequested ||
+                FluxUpdateWorkerTask == null)
+            {
+                // Parse the config JSON on the fly
+                await SetFluxConfigValues();
 
-            // Create the flux worker thread
-            FluxUpdateWorkerCancellationToken = new CancellationTokenSource();
-            Task fluxUpdateWorkerTask = Task.Run(() => FluxUpdateThread(FluxUpdateWorkerCancellationToken.Token));
+                // Create the flux worker thread
+                FluxUpdateWorkerCancellationToken = new CancellationTokenSource();
+                FluxUpdateWorkerTask = Task.Run(() => FluxUpdateThread(FluxUpdateWorkerCancellationToken.Token));
+            }
         }
 
         /// <summary>
         /// Discontinue Flux updates.
         /// </summary>
-        private void Stop()
+        private async Task Stop()
         {
-            FluxUpdateWorkerCancellationToken.Cancel();
+            if (HueClients != null &&
+                HueClients.Any() &&
+                FluxUpdateWorkerTask != null && 
+                FluxUpdateWorkerCancellationToken != null &&
+                !FluxUpdateWorkerCancellationToken.IsCancellationRequested)
+            {
+                FluxUpdateWorkerCancellationToken.Cancel();
+
+                await FluxUpdateWorkerTask;
+            }
         }
 
         /// <summary>
@@ -252,7 +261,7 @@ namespace HueController
                     await ModifyFluxLights(client.Key.Client, client.Value, colorTemperature, brightness, LightTansitionTime);
 
                     // Update the underlying 'Flux' scenes
-                    await ModifyFluxSwitchScenes(client.Key.Client, client.Value, colorTemperature, brightness, LightTansitionTime);
+                    await ModifyFluxSwitchScenes(client.Key.Client, client.Value, colorTemperature, brightness);
                 }
             }
 
@@ -355,8 +364,8 @@ namespace HueController
                 .GroupBy(light =>
                     light.Name.Trim().LastIndexOf(" ") > 0 ?
                         light.Name.Substring(0, light.Name.Trim().LastIndexOf(" ")) :
-                        light.Name);
-                    //Regex.Replace(light.Name, @"[\d-]", string.Empty)
+                        light.Name)
+                .OrderBy(lightGroup => lightGroup.Key);
 
             foreach (IGrouping<string, Light> lightGroup in lightGroups)
             {
@@ -444,7 +453,7 @@ namespace HueController
         /// <summary>
         /// Flux worker thread
         /// </summary>
-        private async void FluxUpdateThread(CancellationToken cancellationToken)
+        private async Task FluxUpdateThread(CancellationToken cancellationToken)
         {
             log.Info($"'{nameof(FluxUpdateThread)}' now running.");
 
@@ -509,7 +518,7 @@ namespace HueController
         /// <param name="client"></param>
         /// <param name="lightsToSet"></param>
         /// <param name="colorTemperature"></param>
-        private async Task ModifyFluxSwitchScenes(HueClient client, List<LightDetails> lightsToSet, int colorTemperature, byte? brightness, TimeSpan transitiontime)
+        private static async Task ModifyFluxSwitchScenes(HueClient client, List<LightDetails> lightsToSet, int colorTemperature, byte? brightness)
         {
             Dictionary<string, int> scenesModified = new Dictionary<string, int>();
 
@@ -519,7 +528,7 @@ namespace HueController
             {
                 scenes = await client.GetScenesAsync();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' exception attempting to get all scenes from client. '{e.Message}' '{e.InnerException}'.");
                 return;
