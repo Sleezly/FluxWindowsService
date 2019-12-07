@@ -310,6 +310,31 @@ namespace HueController.UnitTests
             }
         }
 
+        [TestMethod]
+        public void CalculateLightCommands_BrightnessGroupMatch_GroupHasMismatch()
+        {
+            using (ShimsContext.Create())
+            {
+                Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
+                    new List<Light>()
+                    {
+                        new Light() {
+                            Name = "Test 1",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = 145, ColorTemperature = CurrentColorTemperature } },
+
+                        new Light() {
+                            Name = "Test 2",
+                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            State = new State() { On = true, Brightness = 147, ColorTemperature = CurrentColorTemperature } },                    },
+                    CurrentColorTemperature,
+                    146,
+                    145);
+
+                Assert.AreEqual(1, result.Count(), $"One light group expected since all lights share the same common name.");
+                Assert.IsTrue(result.ContainsKey(146), $"Lights should be adjusted to the new brightness.");
+            }
+        }
 
         [DataTestMethod]
         [DataRow(0)]

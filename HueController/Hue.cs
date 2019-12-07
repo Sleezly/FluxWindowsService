@@ -373,11 +373,11 @@ namespace HueController
                     .GroupBy(x => x.State.Brightness)
                     // Never choose a Zero brightness as the most common.
                     .OrderByDescending(x => x.All(y => y.State.Brightness != 0))
-                    // Get the most commonly occurring value, if any.
+                    // Prefer the brightness which matches the previous brightness value to help stay in sync with Flux.
+                    .ThenByDescending(x => x.All(y => y.State.Brightness == lastBrightness))
+                    // Tie breaker for the more common value, if any.
                     .ThenByDescending(x => x.Count())
-                    // Choose the value which matches the new brightness, if present.
-                    .ThenByDescending(x => x.All(y => y.State.Brightness == newBrightness))
-                    // Prefer the highest value as tie-breaker.
+                    // Prefer the highest value as final tie-breaker.
                     .ThenByDescending(x => x.First().State.Brightness)
                     .Select(x => x.Key)
                     .First();
