@@ -1,7 +1,5 @@
-﻿using HueController;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -17,7 +15,8 @@ namespace FluxService
         {
             HttpResponseMessage response = new HttpResponseMessage
             {
-                Content = new ObjectContent<HueDetails>(fluxServiceContract.Get(), new JsonMediaTypeFormatter(), "application/json")
+                //Content = new ObjectContent<IDictionary<string, string>>(fluxServiceContract.Get(), new JsonMediaTypeFormatter(), "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(fluxServiceContract.Get()))
             };
 
             return response;
@@ -32,7 +31,7 @@ namespace FluxService
                 string request = await Request.Content.ReadAsStringAsync();
                 HuePost huePost = JsonConvert.DeserializeObject<HuePost>(request);
 
-                await fluxServiceContract.Post(huePost.On.Equals("on", System.StringComparison.InvariantCultureIgnoreCase), huePost.LightLevel);
+                await fluxServiceContract.Post(huePost.On.Equals("on", System.StringComparison.OrdinalIgnoreCase), huePost.LightLevel);
 
                 return Ok();
             }

@@ -4,27 +4,27 @@ using System.Runtime.Serialization;
 namespace HueController
 {
     [DataContract]
-    public class HueDetails
+    public class HueStatus
     {
         [DataMember]
         public FluxStatus FluxStatus;
 
         [DataMember]
-        public Boolean On;
+        public bool On;
 
         [DataMember]
-        public Int32 LastColorTemperature;
+        public int? LastColorTemperature;
 
         [DataMember]
-        public Int32 LastBrightness;
+        public int? LastBrightness;
 
         [DataMember]
-        public Int32 LastLightlevel;
+        public double? LastLightlevel;
 
         [DataMember]
-        public TimeSpan CurrentSleepDuration;
+        public TimeSpan? CurrentSleepDuration;
 
         [DataMember]
-        public DateTime CurrentWakeCycle;
+        public DateTime? CurrentWakeCycle;
     }
 }

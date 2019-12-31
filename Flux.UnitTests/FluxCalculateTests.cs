@@ -15,90 +15,90 @@ namespace HueController.UnitTests
 
         private static readonly byte BrightnessMatches = 128;
         
-        private static readonly int CurrentColorTemperature = LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights;
+        private static readonly Primitives.ColorTemperature CurrentColorTemperature = ColorTemperatureExtensions.MaxAllowedColorTemperatureForWhiteAmbianceLights;
 
         private static readonly IReadOnlyCollection<Light> DefaultLightTestGroup = new List<Light>()
         {
             new Light() {
                 Name = "WhiteOnly-Dim",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteOnly],
                 State = new State() { On = true, Brightness = BrightnessDim } },
 
             new Light() {
                 Name = "WhiteOnly-Matches",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteOnly],
                 State = new State() { On = true, Brightness = BrightnessMatches } },
 
             new Light() {
                 Name = "WhiteOnly-Off",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteOnly],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteOnly],
                 State = new State() { On = false } },
 
             new Light() {
                 Name = "WhiteAmbiance-Dim",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
                 Name = "WhiteAmbiance-Matches",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
                 Name = "WhiteAmbiance-Off",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
             new Light() {
                 Name = "ColorCT-Dim",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
                 Name = "ColorCT-Matches",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
                 Name = "ColorCT-Off",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature, ColorMode = "ct" } },
 
             new Light() {
                 Name = "ColorXY-Dim",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorMode = "xy",
                     ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
                 Name = "ColorXY-Matches",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorMode = "xy",
                     ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
                 Name = "ColorXYO-ff",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorMode = "xy",
                     ColorCoordinates = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(CurrentColorTemperature))} },
 
             new Light() {
                 Name = "ColorHS-Dim",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessDim, ColorMode = "hs",
                     Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
                     Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
 
             new Light() {
                 Name = "ColorHS-Matches",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = true, Brightness = BrightnessMatches, ColorMode = "hs",
                     Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
                     Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
 
             new Light() {
                 Name = "ColorHS-Off",
-                Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.Color],
+                Type = LightExtensions.LightTypeToNameMapping[LightType.Color],
                 State = new State() { On = false, Brightness = BrightnessMatches, ColorMode = "hs",
                     Hue = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).H),
                     Saturation = Convert.ToInt32(ColorConverter.RGBtoHSV(ColorConverter.MiredToRGB(CurrentColorTemperature)).S) } },
@@ -164,7 +164,7 @@ namespace HueController.UnitTests
             {
                 Dictionary<byte, List<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
-                    LightDetails.MaxAllowedColorTemperatureForWhiteAmbianceLights + 5,
+                    ColorTemperatureExtensions.MaxAllowedColorTemperatureForWhiteAmbianceLights + 5,
                     BrightnessMatches,
                     BrightnessMatches);
 
@@ -201,22 +201,22 @@ namespace HueController.UnitTests
                     {
                         new Light() {
                             Name = "Test 6",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 4",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = (byte)(BrightnessMatches - 4), ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 5",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 3",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = (byte)(BrightnessMatches + 2), ColorTemperature = CurrentColorTemperature } },
                     },
                     CurrentColorTemperature,
@@ -239,22 +239,22 @@ namespace HueController.UnitTests
                     {
                         new Light() {
                             Name = "Test 4",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = (byte)(BrightnessMatches + 2), ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 5",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 2",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 3",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = (byte)(BrightnessMatches - 4), ColorTemperature = CurrentColorTemperature } },
                     },
                     CurrentColorTemperature,
@@ -277,27 +277,27 @@ namespace HueController.UnitTests
                     {
                         new Light() {
                             Name = "Test 4",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = (byte)(BrightnessMatches + 2), ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 1",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 5",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = 0, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 2",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = BrightnessMatches, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 3",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = (byte)(BrightnessMatches - 4), ColorTemperature = CurrentColorTemperature } },
                     },
                     CurrentColorTemperature,
@@ -320,12 +320,12 @@ namespace HueController.UnitTests
                     {
                         new Light() {
                             Name = "Test 1",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = 145, ColorTemperature = CurrentColorTemperature } },
 
                         new Light() {
                             Name = "Test 2",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = 147, ColorTemperature = CurrentColorTemperature } },                    },
                     CurrentColorTemperature,
                     146,
@@ -358,7 +358,7 @@ namespace HueController.UnitTests
                     {
                         new Light() {
                             Name = "Test",
-                            Type = LightExtensions.LightTypeToNameMapping[LightDetails.LightType.WhiteAmbiance],
+                            Type = LightExtensions.LightTypeToNameMapping[LightType.WhiteAmbiance],
                             State = new State() { On = true, Brightness = (byte)currentBrightness, ColorTemperature = CurrentColorTemperature } },
                     },
                     CurrentColorTemperature,

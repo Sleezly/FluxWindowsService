@@ -8,7 +8,7 @@ namespace FluxService
     public interface IFluxServiceContract
     {
         [OperationContract]
-        HueDetails Get();
+        HueStatus Get();
 
         [OperationContract]
         Task Post(bool On, double LightLevel);

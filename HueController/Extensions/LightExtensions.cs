@@ -2,56 +2,55 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static HueController.LightDetails;
 
 namespace HueController
 {
     public static class LightExtensions
     {
+        private static readonly IEnumerable<LightConfig> LightConfigs = LightConfig.DeserializeLightObjectGraph();
 
         internal static IDictionary<LightType, string> LightTypeToNameMapping = new Dictionary<LightType, string>()
         {
-            { LightDetails.LightType.WhiteOnly, "Dimmable light" },
-            { LightDetails.LightType.WhiteAmbiance, "Color temperature light" },
-            { LightDetails.LightType.Color, "Extended color light" },
+            { LightType.WhiteOnly, "Dimmable light" },
+            { LightType.WhiteAmbiance, "Color temperature light" },
+            { LightType.Color, "Extended color light" },
         };
 
         public static bool SupportsColorOrTemperatureChange(this Light light)
         {
-            return LightDetails.LightType.WhiteOnly != light.LightType();
+            return LightType.WhiteOnly != light.GetLightType();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="color"></param>
-        /// <returns></returns>
-        public static int? NormalizeColorForAllowedColorRange(this Light light, int color)
+        public static bool IsFluxControlled(this Light light)
         {
-            return LightDetails.NormalizeColorForAllowedColorRange(light.LightType(), color);
+            return light.ControlBrightness() || light.ControlTemperature();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="color"></param>
-        /// <returns></returns>
-        public static bool IsInAllowedColorRange(this Light light, int color)
+        public static bool ControlBrightness(this Light light)
         {
-            switch (light.LightType())
-            {
-                case LightDetails.LightType.Color:
-                    return color <= MaxAllowedColorTemperatureForWhiteAndColorLights && color >= MinAllowedColorTemperatureForWhiteAndColorLights;
+            return light.ToLightConfig().ControlBrightness;
+        }
 
-                case LightDetails.LightType.WhiteAmbiance:
-                    return color <= MaxAllowedColorTemperatureForWhiteAmbianceLights && color >= MinAllowedColorTemperatureForWhiteAndColorLights;
+        public static bool ControlTemperature(this Light light)
+        {
+            return light.ToLightConfig().ControlTemperature;
+        }
 
-                case LightDetails.LightType.WhiteOnly:
-                    return false;
+        private static LightConfig ToLightConfig(this Light light)
+        {
+            return LightConfigs.SingleOrDefault(lightEntityDetail =>
+               lightEntityDetail.Name.Equals(light.Name, StringComparison.OrdinalIgnoreCase)) ??
+                new LightConfig()
+                {
+                    Name = light.Name,
+                    ControlTemperature = true,
+                    ControlBrightness = true,
+                };
+        }
 
-                default:
-                    throw new ArgumentException($"Unsupported light type '{light.Type}'.");
-            }
+        public static Light Get(this IEnumerable<Light> lights, string id)
+        {
+            return lights.SingleOrDefault(light => light.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -59,7 +58,7 @@ namespace HueController
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static LightType LightType(this Light light)
+        public static LightType GetLightType(this Light light)
         {
             return LightTypeToNameMapping.Single(x => string.Equals(light.Type, x.Value, StringComparison.OrdinalIgnoreCase)).Key;
         }

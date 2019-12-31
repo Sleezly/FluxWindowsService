@@ -1,9 +1,9 @@
 ﻿using HueController;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace Fluxer
 {
@@ -11,7 +11,7 @@ namespace Fluxer
     {
         private const string baseAddress = "http://localhost:51234/api/flux";
 
-        public static HueDetails GetHueData()
+        public static async Task<HueStatus> GetHueData()
         {
             HttpClient client = new HttpClient
             {
@@ -21,13 +21,12 @@ namespace Fluxer
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             // List data response.
-            HttpResponseMessage response = client.GetAsync(baseAddress).Result;
+            HttpResponseMessage response = await client.GetAsync(baseAddress);
 
             if (response.IsSuccessStatusCode)
             {
-                string hueStatus = response.Content.ReadAsStringAsync().Result;
-
-                return JsonConvert.DeserializeObject<HueDetails>(hueStatus);
+                string hueStatus = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<HueStatus>(hueStatus);
 
             }
 

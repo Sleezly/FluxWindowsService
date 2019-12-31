@@ -46,25 +46,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ColorTemperatureExtensions.cs" />
     <Compile Include="Extensions\LightExtensions.cs" />
+    <Compile Include="LightType.cs" />
+    <Compile Include="Primitives\ColorTemperature.cs" />
     <Compile Include="Utilities\ColorConverter.cs" />
     <Compile Include="Utilities\HSV.cs" />
+    <Compile Include="Utilities\Logging.cs" />
     <Compile Include="Utilities\RGB.cs" />
     <Compile Include="Flux.cs" />
-    <Compile Include="FluxConfig.cs" />
-    <Compile Include="HueBridge.cs" />
+    <Compile Include="Config\FluxConfig.cs" />
     <Compile Include="Hue.cs" />
-    <Compile Include="FluxStatus.cs" />
-    <Compile Include="HueDetails.cs" />
-    <Compile Include="LightDetails.cs" />
-    <Compile Include="LightEntityRegistry.cs" />
+    <Compile Include="DataContracts\FluxStatus.cs" />
+    <Compile Include="DataContracts\HueStatus.cs" />
+    <Compile Include="Config\LightConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="LightEntityRegistry.json">
+    <None Include="Config\LightConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="FluxConfig.json">
+    <None Include="Config\FluxConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="log4net.config">
@@ -79,7 +81,7 @@
       <Version>2.0.8</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.Platforms">
-      <Version>3.0.0</Version>
+      <Version>3.1.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Win32.Primitives">
       <Version>4.3.0</Version>
@@ -91,10 +93,10 @@
       <Version>12.0.3</Version>
     </PackageReference>
     <PackageReference Include="Q42.HueApi">
-      <Version>3.12.0</Version>
+      <Version>3.14.0</Version>
     </PackageReference>
     <PackageReference Include="Q42.HueApi.ColorConverters">
-      <Version>3.12.0</Version>
+      <Version>3.14.0</Version>
     </PackageReference>
     <PackageReference Include="Q42.HueApi.Net">
       <Version>3.3.2</Version>
@@ -118,7 +120,7 @@
       <Version>4.3.0</Version>
     </PackageReference>
     <PackageReference Include="System.Diagnostics.DiagnosticSource">
-      <Version>4.6.0</Version>
+      <Version>4.7.0</Version>
     </PackageReference>
     <PackageReference Include="System.Diagnostics.Tools">
       <Version>4.3.0</Version>

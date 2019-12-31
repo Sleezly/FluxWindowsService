@@ -5,15 +5,18 @@ namespace FluxService
 {
     public class FluxServiceContract : IFluxServiceContract
     {
-        private readonly Hue hue = Hue.GetOrCreate();
+        /// <summary>
+        /// Hue instance.
+        /// </summary>
+        private readonly Hue hue = new Hue();
         
         /// <summary>
         /// Retrieval of Hue Status info.
         /// </summary>
         /// <returns></returns>
-        public HueDetails Get()
+        public HueStatus Get()
         {
-            return hue.Status;
+            return hue.GetStatus();
         }
 
         /// <summary>

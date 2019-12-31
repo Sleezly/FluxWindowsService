@@ -19,7 +19,7 @@ namespace HueController
         /// Bridge connection info
         /// </summary>
         [DataMember]
-        public Dictionary<string /* bridgeId */, string /* connectionSecret */> BridgeIds;
+        public Dictionary<string /* bridgeIp */, string /* connectionSecret */> BridgeDetails;
 
         /// <summary>
         /// Times
@@ -67,13 +67,18 @@ namespace HueController
         public byte MinBrightness;
 
         /// <summary>
+        /// JSON filename.
+        /// </summary>
+        private static readonly string JsonFilename = @"Config\FluxConfig.json";
+
+        /// <summary>
         /// Load the configuration file.
         /// </summary>
         /// <returns></returns>
         public static FluxConfig ParseConfig()
         {
-            StreamReader reader = new StreamReader($"FluxConfig.json");
-            string config = reader.ReadToEndAsync().Result;
+            StreamReader reader = new StreamReader(JsonFilename);
+            string config = reader.ReadToEndAsync().GetAwaiter().GetResult();
             return JsonConvert.DeserializeObject<FluxConfig>(config);
         }
     }

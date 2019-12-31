@@ -15,16 +15,16 @@ namespace HueController
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            Task.Run(() => SomethingHappened());
+            Task.Run(() => WorkerThreadAsync());
         }
 
-        public void SomethingHappened()
+        public async Task WorkerThreadAsync()
         {
             DateTime lastUpdate = default(DateTime);
 
             while (true)
             {
-                HueDetails status = FluxService.GetHueData();
+                HueStatus hueStatus = await FluxService.GetHueData();
 
                 this.BeginInvoke(new MethodInvoker(delegate
                 {
@@ -46,39 +46,30 @@ namespace HueController
                     infoLabels += "\nSleeping:";
                     infoLabels += "\nWake at:";
 
-                    infoData += "\n" + status.LastBrightness.ToString();
-                    infoData += "\n" + status.LastLightlevel.ToString("N0");
+                    infoData += "\n" + hueStatus.LastBrightness.ToString();
+                    infoData += "\n" + hueStatus.LastLightlevel?.ToString("N0");
                     infoData += "\n";
-                    infoData += "\n" + (status.On ? "On" : "Off");
+                    infoData += "\n" + (hueStatus.On ? "On" : "Off");
                     infoData += "\n";
-                    infoData += "\n" + status.FluxStatus.Sunrise.ToShortTimeString();
-                    infoData += "\n" + status.FluxStatus.SolarNoon.ToShortTimeString();
-                    infoData += "\n" + status.FluxStatus.Sunset.ToShortTimeString();
-                    infoData += "\n" + status.FluxStatus.StopTime.ToShortTimeString();
+                    infoData += "\n" + hueStatus.FluxStatus.Sunrise.ToShortTimeString();
+                    infoData += "\n" + hueStatus.FluxStatus.SolarNoon.ToShortTimeString();
+                    infoData += "\n" + hueStatus.FluxStatus.Sunset.ToShortTimeString();
+                    infoData += "\n" + hueStatus.FluxStatus.StopTime.ToShortTimeString();
                     infoData += "\n";
-                    infoData += "\n" + (lastUpdate == default(DateTime) ? string.Empty : lastUpdate.ToShortTimeString());
+                    infoData += "\n" + (lastUpdate == default ? string.Empty : lastUpdate.ToShortTimeString());
                     infoData += "\n";
-                    infoData += "\n" + status.CurrentSleepDuration.ToString("c");
-                    infoData += "\n" + status.CurrentWakeCycle.ToShortTimeString();
+                    infoData += "\n" + hueStatus.CurrentSleepDuration?.ToString("c");
+                    infoData += "\n" + hueStatus.CurrentWakeCycle?.ToShortTimeString();
 
                     labelInfo.Text = infoLabels;
                     labelData.Text = infoData;
 
-                    labelCurrentFluxTemperature.Text = status.LastColorTemperature.ToString();
+                    labelCurrentFluxTemperature.Text = hueStatus.LastColorTemperature.ToString();
 
-                    lastUpdate = status.CurrentWakeCycle;
+                    lastUpdate = hueStatus.CurrentWakeCycle ?? default;
                 }));
 
-                TimeSpan timeToSleep = status.CurrentWakeCycle - DateTime.Now;
-
-                if (timeToSleep > TimeSpan.FromSeconds(1))
-                {
-                    Thread.Sleep(timeToSleep);
-                }
-                else
-                {
-                    Thread.Sleep(TimeSpan.FromSeconds(10));
-                }
+                await Task.Delay(TimeSpan.FromSeconds(10));
             }
         }
     }

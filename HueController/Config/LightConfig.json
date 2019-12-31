@@ -1,0 +1,71 @@
+{
+  "Lights": [
+    {
+      "Name": "tv accent bias",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "tv accent mantle",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "kitchen accent dishwasher",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "kitchen accent coffee",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "kitchen accent microwave",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "kitchen accent oven",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "bathroom 1",
+      "ControlBrightness": false
+    },
+    {
+      "Name": "bathroom 2",
+      "ControlBrightness": false
+    },
+    {
+      "Name": "bathroom 3",
+      "ControlBrightness": false
+    },
+    {
+      "Name": "mantle ceiling 1",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "mantle ceiling 2",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "mantle ceiling 3",
+      "ControlBrightness": false,
+      "ControlTemperature": true
+    },
+    {
+      "Name": "outside front 3",
+      "ControlBrightness": true,
+      "ControlTemperature": false
+    },
+    {
+      "Name": "outside front 4",
+      "ControlBrightness": true,
+      "ControlTemperature": false
+    }
+  ]
+}

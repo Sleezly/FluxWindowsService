@@ -1,4 +1,5 @@
-﻿using Innovative.SolarCalculator;
+﻿using HueController.Primitives;
+using Innovative.SolarCalculator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,59 +8,50 @@ namespace HueController
 {
     public class Flux
     {
-        public double Longitude { private get; set; }
-        public double Latitude { private get; set; }
+        public readonly double Longitude;
+        public readonly double Latitude;
 
-        public int StopColorTemperature { get; set; }
+        public readonly int StopColorTemperature;
+        public readonly int SunriseColorTemperature;
+        public readonly int SunsetColorTemperature;
+        public readonly int SolarNoonTemperature;
 
-        public int SunriseColorTemperature { get; set; }
-        public int SunsetColorTemperature { get; set; }
-        public int SolarNoonTemperature { get; set; }
+        public readonly TimeSpan StopTime;
 
-        public TimeSpan StopTime { get; set; }
+        public DateTime StopDate { get { return DateTime.Today + StopTime; } }
+        public DateTime Sunrise { get { return GetSunrise(DateTime.Today); } }
+        public DateTime Sunset { get { return GetSunset(DateTime.Today); } }
+        public DateTime SolarNoon { get { return GetSolarNoon(DateTime.Today); } }
 
-        public DateTime StopDate { get { return Today + StopTime; } }
-
-        public DateTime Sunrise { get { return GetSunrise(Today); } }
-        public DateTime Sunset { get { return GetSunset(Today); } }
-        public DateTime SolarNoon { get { return GetSolarNoon(Today); } }
-
-        private DateTime? _today;
-        public DateTime Today
+        public Flux()
         {
-            get
-            {
-                if (_today.HasValue)
-                    return _today.Value;
-                return DateTime.Today;
-            }
-            set
-            {
-                if (value.Hour != 0 || value.Minute != 0 || value.Second != 0 || value.Millisecond != 0)
-                    throw new ArgumentException();
-                _today = value;
-            }
+            FluxConfig fluxConfig = FluxConfig.ParseConfig();
+
+            Latitude = fluxConfig.Latitude;
+            Longitude = fluxConfig.Longitude;
+            StopTime = fluxConfig.StopTime;
+            SolarNoonTemperature = fluxConfig.SolarNoonTemperature;
+            StopColorTemperature = fluxConfig.StopColorTemperature;
+            SunriseColorTemperature = fluxConfig.SunriseColorTemperature;
+            SunsetColorTemperature = fluxConfig.SunsetColorTemperature;
         }
 
-        public FluxStatus Status
+        public FluxStatus GetStatus()
         {
-            get
+            return new FluxStatus()
             {
-                return new FluxStatus()
-                {
-                    FluxColorTemperature = GetColorTemperature(DateTime.Now),
+                FluxColorTemperature = GetColorTemperature(DateTime.Now),
 
-                    StopColorTemperature = StopColorTemperature,
-                    SunriseColorTemperature = SunriseColorTemperature,
-                    SunsetColorTemperature = SunsetColorTemperature,
-                    SolarNoonTemperature = SolarNoonTemperature,
+                StopColorTemperature = StopColorTemperature,
+                SunriseColorTemperature = SunriseColorTemperature,
+                SunsetColorTemperature = SunsetColorTemperature,
+                SolarNoonTemperature = SolarNoonTemperature,
 
-                    StopTime = StopDate,
-                    Sunrise = Sunrise,
-                    Sunset = Sunset,
-                    SolarNoon = SolarNoon,
-                };
-            }
+                StopTime = StopDate,
+                Sunrise = Sunrise,
+                Sunset = Sunset,
+                SolarNoon = SolarNoon,
+            };
         }
 
         /// <summary>
@@ -165,19 +157,19 @@ namespace HueController
                 sleepDuration = TimeSpan.FromSeconds(secondsBetweenIntervals);
             }
 
-            int currentColorTemperature = GetColorTemperature(now);
+            ColorTemperature currentColorTemperature = GetColorTemperature(now);
 
             // Account for updating the test hook between retrieving color temperature values
-            if (_today.HasValue)
-            {
-                if (Today.Day != (now + sleepDuration).Day)
-                {
-                    // Make sure we only update once
-                    Today = Today.AddDays(1);
-                }
-            }
+            //if (_today.HasValue)
+            //{
+            //    if (Today.Day != (now + sleepDuration).Day)
+            //    {
+            //        // Make sure we only update once
+            //        Today = Today.AddDays(1);
+            //    }
+            //}
 
-            int nextColorTemperature = GetColorTemperature(now + sleepDuration);
+            ColorTemperature nextColorTemperature = GetColorTemperature(now + sleepDuration);
             if (currentColorTemperature == nextColorTemperature)
             {
                 return sleepDuration + GetThreadSleepDuration(now + sleepDuration);
@@ -192,7 +184,7 @@ namespace HueController
         /// </summary>
         /// <param name="now"></param>
         /// <returns></returns>
-        public int GetColorTemperature(DateTime now)
+        public ColorTemperature GetColorTemperature(DateTime now)
         {
             List<KeyValuePair<DateTime, int>> pairs = GetSortedTimesAndColorTemperaturePairs(now);
 
@@ -204,7 +196,7 @@ namespace HueController
         /// </summary>
         /// <param name="now"></param>
         /// <returns></returns>
-        public static int GetColorTemperature(int startValue, int endValue, double secondsSinceStart, double totalDurationInSeconds)
+        public static ColorTemperature GetColorTemperature(int startValue, int endValue, double secondsSinceStart, double totalDurationInSeconds)
         {
             double temperatureRange = Math.Abs(endValue - startValue);
             double percentageComplete = secondsSinceStart / totalDurationInSeconds;
@@ -241,7 +233,7 @@ namespace HueController
             // Duration at night after the stop time should have no adjustments
             values = InsertInToTimeAndColorTemperaturePair(values, GetSunrise(now) - TimeSpan.FromMinutes(30), ConvertKelvinToColorTemperature(StopColorTemperature));
 
-            return GetCurrentDateTimeAndTemperaturePsirs(now, values);
+            return GetCurrentDateTimeAndTemperaturePairs(now, values);
         }
 
         /// <summary>
@@ -282,7 +274,7 @@ namespace HueController
         /// <param name="now"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        private static List<KeyValuePair<DateTime, int>> GetCurrentDateTimeAndTemperaturePsirs(DateTime now, List<KeyValuePair<DateTime, int>> values)
+        private static List<KeyValuePair<DateTime, int>> GetCurrentDateTimeAndTemperaturePairs(DateTime now, List<KeyValuePair<DateTime, int>> values)
         {
             List<KeyValuePair<DateTime, int>> pairs = new List<KeyValuePair<DateTime, int>>();
 
