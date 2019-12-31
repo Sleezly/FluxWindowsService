@@ -14,29 +14,16 @@ namespace HueController.UnitTests
         }
 
         [TestMethod]
-        public void TestCreateHue()
-        {
-            Hue hue = new Hue();
-            hue.GetStatus();
-        }
-
-        [TestMethod]
-        public void TestLightEntityRegistry()
-        {
-            LightConfig.DeserializeLightObjectGraph();
-        }
-
-        [TestMethod]
         public void TestGetPollingRate()
         {
             Flux flux = new Flux();
 
-            flux.GetThreadSleepDuration(new DateTime(2018, 1, 1, 5, 0, 0));
-            flux.GetThreadSleepDuration(new DateTime(2018, 1, 1, 6, 59, 59));
-            flux.GetThreadSleepDuration(new DateTime(2018, 1, 1, 7, 30, 0));
-            flux.GetThreadSleepDuration(new DateTime(2018, 1, 1, 10, 0, 0));
-            flux.GetThreadSleepDuration(new DateTime(2018, 1, 1, 19, 0, 0));
-            flux.GetThreadSleepDuration(new DateTime(2018, 1, 1, 21, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 5, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 6, 59, 59));
+            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 7, 30, 0));
+            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 10, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 19, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 21, 0, 0));
         }
 
         //[TestMethod]

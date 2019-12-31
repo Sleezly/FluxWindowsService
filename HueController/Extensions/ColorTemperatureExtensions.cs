@@ -53,10 +53,10 @@ namespace HueController
             switch (lightType)
             {
                 case LightType.Color:
-                    return ColorTemperature.Min(MaxAllowedColorTemperatureForWhiteAndColorLights, ColorTemperature.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
+                    return Math.Min(MaxAllowedColorTemperatureForWhiteAndColorLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
 
                 case LightType.WhiteAmbiance:
-                    return ColorTemperature.Min(MaxAllowedColorTemperatureForWhiteAmbianceLights, ColorTemperature.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
+                    return Math.Min(MaxAllowedColorTemperatureForWhiteAmbianceLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
 
                 case LightType.WhiteOnly:
                     return null;

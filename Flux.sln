@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hue.UnitTests", "Flux.UnitTests\Hue.UnitTests.csproj", "{347AA536-B87F-4AF9-8871-AF9654944E9E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HueController.UnitTests", "Flux.UnitTests\HueController.UnitTests.csproj", "{347AA536-B87F-4AF9-8871-AF9654944E9E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluxApplication", "FluxApplication\FluxApplication.csproj", "{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}"
 EndProject

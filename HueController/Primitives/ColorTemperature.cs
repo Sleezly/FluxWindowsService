@@ -7,9 +7,21 @@ namespace HueController.Primitives
     {
         private int Integer { get; }
 
+        /// <summary>
+        /// Maximum allow color temperature for extended color lights
+        /// </summary>
+        internal static int MaxAllowedColorTemperatureForWhiteAndColorLights => 500;
+
+        /// <summary>
+        /// Maximum allow color temperature for extended color lights
+        /// </summary>
+        internal static int MinColorTemperatureValue => 154;
+
         public ColorTemperature(int colorTemperature)
         {
-            Integer = colorTemperature;
+            // Allowable values are in range 154 <-> 500.
+            Integer = Math.Max(MinColorTemperatureValue, 
+                Math.Min(colorTemperature, MaxAllowedColorTemperatureForWhiteAndColorLights));
         }
 
         public double Kelvin => 1000000.0 / Integer;
@@ -121,16 +133,6 @@ namespace HueController.Primitives
         public static bool operator <=(ColorTemperature first, ColorTemperature second)
         {
             return first.Integer <= second.Integer;
-        }
-
-        public static ColorTemperature Max(ColorTemperature first, ColorTemperature second)
-        {
-            return Math.Max(first.Integer, second.Integer);
-        }
-
-        public static ColorTemperature Min(ColorTemperature first, ColorTemperature second)
-        {
-            return Math.Min(first.Integer, second.Integer);
         }
     }
 }

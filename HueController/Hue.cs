@@ -163,6 +163,43 @@ namespace HueController
         }
 
         /// <summary>
+        /// Flux worker thread
+        /// </summary>
+        private async Task FluxUpdateThread(CancellationToken cancellationToken)
+        {
+            Log.Info($"'{nameof(FluxUpdateThread)}' now running.");
+
+            // Infinite loop until told to stop by master thread
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await FluxUpdate();
+
+                // Get our next sleep duration which is no less than 4 minutes out.
+                TimeSpan currentSleepDuration = TimeSpan.FromSeconds(Math.Max(
+                    TimeSpan.FromMinutes(4).TotalSeconds,
+                    Flux.GetThreadSleepDuration(DateTime.Now).TotalSeconds));
+
+                // Round the number of minutes to nearest quarter
+                const int round = 15;
+                double CountRound = (currentSleepDuration.TotalSeconds / round);
+
+                this.CurrentSleepDuration = currentSleepDuration;
+                this.CurrentWakeCycle = DateTime.Now + currentSleepDuration;
+
+                Log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{ColorTemperature}' and brightness '{Brightness}' complete; sleeping for '{Math.Floor(currentSleepDuration.TotalMinutes):00}:{currentSleepDuration.Seconds:00}' and will resume at '{DateTime.Now + currentSleepDuration}'.");
+
+                // Wait for the next interval which will require an update
+                await Task.Delay(currentSleepDuration, cancellationToken).ContinueWith(tsk =>
+                {
+                    Log.Info($"'{nameof(FluxUpdateThread)}' now in '{tsk.Status}'.");
+                });
+            }
+
+            // We're no longer running so allow another thread to be kicked off later
+            Log.Info($"'{nameof(FluxUpdateThread)}' now terminating.");
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="adjustBrightness"></param>
@@ -176,7 +213,7 @@ namespace HueController
             // Get the brightness
             byte brightness = CalculateFluxBrightness();
 
-            foreach (HueClient hueClient in HueClients)
+            IEnumerable<Task> fluxTasks = HueClients.Select(async hueClient =>
             {
                 IEnumerable<Light> lights = null;
 
@@ -194,12 +231,121 @@ namespace HueController
                 await ModifyFluxLights(hueClient, lights, colorTemperature, brightness, Brightness ?? 0, LightTansitionTime);
 
                 // Update the underlying 'Flux' scenes
-                await ModifyFluxSwitchScenes(hueClient, lights, colorTemperature, brightness);
-            }
+                await ModifyFluxSwitchScenes(hueClient, lights, colorTemperature, brightness, Brightness ?? 0);
+            });
+
+            await Task.WhenAll(fluxTasks);
 
             // Set updated status prior to invoking callbacks
             this.ColorTemperature = colorTemperature;
             this.Brightness = brightness;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="lightsToSet"></param>
+        /// <param name="colorTemperature"></param>
+        internal static async Task ModifyFluxSwitchScenes(HueClient client, IEnumerable<Light> lights, Primitives.ColorTemperature colorTemperature, byte newBrightness, byte lastBrightness)
+        {
+            Dictionary<string, int> scenesModified = new Dictionary<string, int>();
+
+            IEnumerable<Scene> scenes = null;
+
+            try
+            {
+                scenes = await client.GetScenesAsync();
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' exception attempting to get all scenes from client. '{e.Message}' '{e.InnerException}'.");
+                return;
+            }
+
+            scenes = scenes.Where(x =>
+                x.Name.ToLowerInvariant().Contains("flux") &&
+                (!x.Recycle.HasValue || !x.Recycle.Value));
+
+            // Scenes to update
+            foreach (Scene sceneId in scenes)
+            {
+                Scene scene = null;
+
+                try
+                {
+                    scene = await client.GetSceneAsync(sceneId.Id);
+                }
+                catch (Exception e)
+                {
+                    Log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' exception attempting to get scene info from client. '{e.Message}' '{e.InnerException}'.");
+                }
+
+                if (null != scene)
+                {
+                    Dictionary<string, State> lightStates = scene.LightStates;
+
+                    // Update scenes to use the new color temperature and brightness
+                    foreach (string lightId in scene.LightStates.Keys)
+                    {
+                        Light light = lights.Get(lightId);
+
+
+                        if (lightStates[lightId].On && light.IsFluxControlled())
+                        {
+                            LightCommand lightCommand = new LightCommand()
+                            {
+                                On = true,
+                            };
+
+                            if (light.ControlTemperature())
+                            {
+                                lightCommand.ColorTemperature = colorTemperature.NormalizeColorForAllowedColorRange(light.GetLightType());
+                            }
+
+                            if (light.ControlBrightness() && lightStates[lightId].Brightness == lastBrightness)
+                            {
+                                lightCommand.Brightness = newBrightness;
+                            }
+                            else
+                            {
+                                lightCommand.Brightness = lightStates[lightId].Brightness;
+                            }
+
+                            try
+                            {
+                                if ((lightCommand.ColorTemperature.HasValue && lightStates[lightId].ColorTemperature != lightCommand.ColorTemperature.Value) ||
+                                    (lightCommand.Brightness.HasValue && lightStates[lightId].Brightness != lightCommand.Brightness.Value))
+                                {
+                                    HueResults result = await client.ModifySceneAsync(sceneId.Id, lightId, lightCommand);
+
+                                    // Increment the number of lights modified per scene
+                                    if (scenesModified.ContainsKey(scene.Name))
+                                    {
+                                        scenesModified[scene.Name]++;
+                                    }
+                                    else
+                                    {
+                                        scenesModified.Add(scene.Name, 1);
+                                    }
+
+                                    // Limit hub requests
+                                    await Task.Delay(TimeSpan.FromMilliseconds(15));
+                                }
+                            }
+                            catch (Exception exception)
+                            {
+                                Log.Error($"Exception: '{nameof(ModifyFluxSwitchScenes)}' unable to modify scene ID '{sceneId.Id}' named '{scene.Name}' for light id '{lightId}' with color temperature set to '{lightCommand.ColorTemperature}' and brightness '{lightCommand.Brightness}'. {exception.Message}");
+
+                                // Limit hub requests
+                                await Task.Delay(TimeSpan.FromMilliseconds(100));
+                            }
+                        }
+                    }
+                }
+            }
+
+            Log.Info($"'{nameof(ModifyFluxSwitchScenes)}' modified '{scenesModified.Count()}' scenes to color temperature '{colorTemperature}' and brightness '{newBrightness.ToString()}'.");
         }
 
         /// <summary>
@@ -215,33 +361,26 @@ namespace HueController
                 light.State.On &&
                 light.IsFluxControlled());
 
-            Dictionary<byte, List<string>> lightsToUpdate = CalculateLightCommands(lights, colorTemperature, brightness, lastBrightness);
+            Dictionary<LightCommand, List<string>> lightGroups = CalculateLightCommands(lights, colorTemperature, brightness, lastBrightness, transitiontime);
 
             // Send the light update command
-            foreach (KeyValuePair<byte, List<string>> lightsPerBrightnessToUpdate in lightsToUpdate)
+            foreach (KeyValuePair<LightCommand, List<string>> lightGroup in lightGroups)
             {
                 try 
                 {
-                    LightCommand lightCommand = new LightCommand()
-                    {
-                        ColorTemperature = colorTemperature,
-                        TransitionTime = transitiontime,
-                        Brightness = lightsPerBrightnessToUpdate.Key,
-                    };
+                    HueResults result = await hueClient.SendCommandAsync(lightGroup.Key, lightGroup.Value.ToArray());
 
-                    HueResults result = await hueClient.SendCommandAsync(lightCommand, lightsPerBrightnessToUpdate.Value.ToArray());
-
-                    IEnumerable<string> lightNames = lightsPerBrightnessToUpdate.Value
+                    IEnumerable<string> lightNames = lightGroup.Value
                         .Select(lightId =>
                             lights.Single(light =>
                                 light.Id.Equals(lightId, StringComparison.OrdinalIgnoreCase)).Name)
                         ?.Take(4);
 
-                    Log.Info($"'{nameof(ModifyFluxLights)}' set '{lightsPerBrightnessToUpdate.Value.Count()}' lights to color temperature '{colorTemperature}' and brightness '{lightsPerBrightnessToUpdate.Key.ToString()}' for lights '{string.Join(", ", lightNames)}', IDs '{string.Join(", ", lightsPerBrightnessToUpdate.Value)}'.");
+                    Log.Info($"'{nameof(ModifyFluxLights)}' set '{lightGroup.Value.Count()}' lights to color temperature {(lightGroup.Key.ColorTemperature.HasValue ? $"'{lightGroup.Key.ColorTemperature}'" : "'null'")} and brightness {(lightGroup.Key.Brightness.HasValue ? $"'{lightGroup.Key.Brightness}'" : "'null'")} for lights '{string.Join(", ", lightNames)}', IDs '{string.Join(", ", lightGroup.Value)}'.");
                 }
                 catch (Exception exception)
                 {
-                    Log.Error($"Exception: '{nameof(ModifyFluxLights)}' sent update request for ColorTemperature '{colorTemperature}' to '{string.Join(", ", lightsPerBrightnessToUpdate.Value)}'. {exception.Message}");
+                    Log.Error($"Exception: '{nameof(ModifyFluxLights)}' sent update request for ColorTemperature '{colorTemperature}' to '{string.Join(", ", lightGroup.Value)}'. {exception.Message}");
                 }
             }
         }
@@ -253,10 +392,10 @@ namespace HueController
         /// <param name="lightsToScan"></param>
         /// <param name="colorTemperature"></param>
         /// <param name="transitiontime"></param>
-        internal static Dictionary<byte, List<string>> CalculateLightCommands(IEnumerable<Light> lights, Primitives.ColorTemperature newColorTemperature, byte newBrightness, byte lastBrightness)
+        internal static Dictionary<LightCommand, List<string>> CalculateLightCommands(IEnumerable<Light> lights, Primitives.ColorTemperature newColorTemperature, byte newBrightness, byte lastBrightness, TimeSpan transitionTime)
         {
             // Lights to update
-            Dictionary<byte, List<string>> lightsCommands = new Dictionary<byte, List<string>>();
+            Dictionary<LightCommand, List<string>> lightsCommands = new Dictionary<LightCommand, List<string>>();
 
             //double[] newColorTemperatureAsXY = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(newColorTemperature));
             double[] newColorTemperatureAsXY = newColorTemperature.XY;
@@ -334,13 +473,24 @@ namespace HueController
                         // Only send a light adjustment command when needed.
                         if ((needToSetColorTemperature && light.ControlTemperature()) || (needToSetBrightness && light.ControlBrightness()))
                         {
-                            if (lightsCommands.ContainsKey(brightnessToSet))
+                            LightCommand lightCommand = lightsCommands.Keys.SingleOrDefault(x =>
+                                x.Brightness == ((needToSetBrightness && light.ControlBrightness()) ? brightnessToSet : (byte?)null) &&
+                                x.ColorTemperature == ((needToSetColorTemperature && light.ControlTemperature()) ? (int?)newColorTemperature : (int?)null));
+
+                            if (null != lightCommand)
                             {
-                                lightsCommands[brightnessToSet].Add(light.Id);
+                                lightsCommands[lightCommand].Add(light.Id);
                             }
                             else
                             {
-                                lightsCommands[brightnessToSet] = new List<string>() { light.Id };
+                                lightCommand = new LightCommand()
+                                {
+                                    ColorTemperature = ((needToSetColorTemperature && light.ControlTemperature()) ? (int?)newColorTemperature : (int?)null),
+                                    Brightness = ((needToSetBrightness && light.ControlBrightness()) ? brightnessToSet : (byte?)null),
+                                    TransitionTime = transitionTime,
+                                };
+
+                                lightsCommands[lightCommand] = new List<string>() { light.Id };
                             }
                         }
                     }
@@ -348,43 +498,6 @@ namespace HueController
             }
 
             return lightsCommands;
-        }
-
-        /// <summary>
-        /// Flux worker thread
-        /// </summary>
-        private async Task FluxUpdateThread(CancellationToken cancellationToken)
-        {
-            Log.Info($"'{nameof(FluxUpdateThread)}' now running.");
-
-            // Infinite loop until told to stop by master thread
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                await FluxUpdate();
-
-                // Get our next sleep duration which is no less than 4 minutes out.
-                TimeSpan currentSleepDuration = TimeSpan.FromSeconds(Math.Max(
-                    TimeSpan.FromMinutes(4).TotalSeconds,
-                    Flux.GetThreadSleepDuration(DateTime.Now).TotalSeconds));
-
-                // Round the number of minutes to nearest quarter
-                const int round = 15;
-                double CountRound = (currentSleepDuration.TotalSeconds / round);
-
-                this.CurrentSleepDuration = currentSleepDuration;
-                this.CurrentWakeCycle = DateTime.Now + currentSleepDuration;
-
-                Log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{ColorTemperature}' and brightness '{Brightness}' complete; sleeping for '{Math.Floor(currentSleepDuration.TotalMinutes):00}:{currentSleepDuration.Seconds:00}' and will resume at '{DateTime.Now + currentSleepDuration}'.");
-
-                // Wait for the next interval which will require an update
-                await Task.Delay(currentSleepDuration, cancellationToken).ContinueWith(tsk =>
-                {
-                    Log.Info($"'{nameof(FluxUpdateThread)}' now in '{tsk.Status}'.");
-                });
-            }
-
-            // We're no longer running so allow another thread to be kicked off later
-            Log.Info($"'{nameof(FluxUpdateThread)}' now terminating.");
         }
 
         /// <summary>
@@ -430,164 +543,5 @@ namespace HueController
                 return this.MaxBrightness;
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="lightsToSet"></param>
-        /// <param name="colorTemperature"></param>
-        private static async Task ModifyFluxSwitchScenes(HueClient client, IEnumerable<Light> lights, Primitives.ColorTemperature colorTemperature, byte? brightness)
-        {
-            Dictionary<string, int> scenesModified = new Dictionary<string, int>();
-
-            IEnumerable<Scene> scenes = null;
-
-            try
-            {
-                scenes = await client.GetScenesAsync();
-            }
-            catch (Exception e)
-            {
-                Log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' exception attempting to get all scenes from client. '{e.Message}' '{e.InnerException}'.");
-                return;
-            }
-
-            scenes = scenes.Where(x =>
-                x.Name.ToLowerInvariant().Contains("flux") &&
-                (!x.Recycle.HasValue || !x.Recycle.Value));
-
-            // Scenes to update
-            foreach (Scene sceneId in scenes)
-            {
-                Scene scene = null;
-
-                try
-                {
-                    scene = await client.GetSceneAsync(sceneId.Id);
-                }
-                catch (Exception e)
-                {
-                    Log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' exception attempting to get scene info from client. '{e.Message}' '{e.InnerException}'.");
-                }
-
-                if (null != scene)
-                {
-                    Dictionary<string, State> lightStates = scene.LightStates;
-
-                    // Update scenes to use the new color temperature and brightness
-                    foreach (string lightId in scene.LightStates.Keys)
-                    {
-                        Light light = lights.Get(lightId);
-
-
-                        if (lightStates[lightId].On && light.IsFluxControlled())
-                        {
-                            LightCommand lightCommand = new LightCommand()
-                            {
-                                On = true,
-                            };
-
-                            if (light.ControlTemperature())
-                            {
-                                lightCommand.ColorTemperature = colorTemperature.NormalizeColorForAllowedColorRange(light.GetLightType());
-                            }
-
-                            if (light.ControlBrightness())
-                            {
-                                lightCommand.Brightness = brightness ?? lightStates[lightId].Brightness;
-                            }
-                            else
-                            {
-                                lightCommand.Brightness = lightStates[lightId].Brightness;
-                            }
-
-                            try
-                            {
-                                if ((lightCommand.ColorTemperature.HasValue && lightStates[lightId].ColorTemperature != lightCommand.ColorTemperature.Value) ||
-                                    (lightCommand.Brightness.HasValue && lightStates[lightId].Brightness != lightCommand.Brightness.Value))
-                                {
-                                    HueResults result = await client.ModifySceneAsync(sceneId.Id, lightId, lightCommand);
-
-                                    // Increment the number of lights modified per scene
-                                    if (scenesModified.ContainsKey(scene.Name))
-                                    {
-                                        scenesModified[scene.Name]++;
-                                    }
-                                    else
-                                    {
-                                        scenesModified.Add(scene.Name, 1);
-                                    }
-
-                                    // Limit hub requests
-                                    await Task.Delay(TimeSpan.FromMilliseconds(15));
-                                }
-                            }
-                            catch (Exception exception)
-                            {
-                                Log.Error($"Exception: '{nameof(ModifyFluxSwitchScenes)}' unable to modify scene ID '{sceneId.Id}' named '{scene.Name}' for light id '{lightId}' with color temperature set to '{colorTemperature}' and brightness '{brightness.ToString()}'. {exception.Message}");
-
-                                // Limit hub requests
-                                await Task.Delay(TimeSpan.FromMilliseconds(100));
-                            }
-                        }
-                    }
-                }
-            }
-
-            Log.Info($"'{nameof(ModifyFluxSwitchScenes)}' modified '{scenesModified.Count()}' scenes to color temperature '{colorTemperature}' and brightness '{brightness.ToString()}'.");
-        }
-
-        /// <summary>
-        /// List of lights allowed to be processed as part of Flux updates. Only lights added here may be updated.
-        /// </summary>
-        /// <param name="lightsToAdd"></param>
-        //private async Task<IEnumerable<LightDetails>> GetLightDetails(HueClient hueClient)
-        //{
-        //    IEnumerable<LightEntityRegistry> lightEntities = await LightEntityRegistry.DeserializeLightObjectGraph();
-
-        //    IEnumerable<Light> lights = await hueClient.GetLightsAsync();
-
-        //    return lights
-        //        .OrderBy(n => n.Name)
-        //        .Select(light =>
-        //        {
-        //            LightEntityRegistry lightEntity = lightEntities.SingleOrDefault(x => x.Name.Equals(light.Name, StringComparison.InvariantCultureIgnoreCase));
-
-        //            if (null != lightEntity)
-        //            {
-        //                if (lightEntity.ControlBrightness || lightEntity.ControlTemperature)
-        //                {
-        //                    log.Info($"{nameof(GetLightDetails)} Adding '{light.Name}' '{light.Id}' '{light.UniqueId}' which is a '{light.LightType()}' light for Flux.");
-                           
-        //                    return new LightDetails()
-        //                    {
-        //                        Id = light.Id,
-        //                        Name = light.Name,
-        //                        Type = light.LightType(),
-        //                        AdjustBrightnessAllowed = lightEntity.ControlBrightness,
-        //                        AdjustColorTemperatureAllowed = lightEntity.ControlTemperature && light.SupportsColorOrTemperatureChange(),
-        //                    };
-        //                }
-        //            }
-        //            else
-        //            {
-        //                log.Info($"{nameof(GetLightDetails)} Adding '{light.Name}' '{light.Id}' '{light.UniqueId}' which is a '{light.LightType()}' light for Flux.");
-                    
-        //                return new LightDetails()
-        //                {
-        //                    Id = light.Id,
-        //                    Name = light.Name,
-        //                    Type = light.LightType(),
-        //                    AdjustBrightnessAllowed = true,
-        //                    AdjustColorTemperatureAllowed = light.SupportsColorOrTemperatureChange(),
-        //                };
-        //            }
-
-        //            log.Info($"{nameof(GetLightDetails)} Skipping '{light.Name}' '{light.Id}' '{light.UniqueId}' which is a '{light.LightType()}' light.");
-        //            return null;
-        //        })
-        //        .Where(lightDetail => null != lightDetail);
-        //}
     }
 }
