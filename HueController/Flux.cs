@@ -222,10 +222,10 @@ namespace HueController
 
             values = InsertInToTimeAndColorTemperaturePair(null, GetSunrise(now), ConvertKelvinToColorTemperature(SunriseColorTemperature));
             values = InsertInToTimeAndColorTemperaturePair(values, GetSolarNoon(now), ConvertKelvinToColorTemperature(SolarNoonTemperature));
-            values = InsertInToTimeAndColorTemperaturePair(values, StopDate, ConvertKelvinToColorTemperature(StopColorTemperature));
+            values = InsertInToTimeAndColorTemperaturePair(values, now.Date + StopTime, ConvertKelvinToColorTemperature(StopColorTemperature));
 
             // No sunset when it occurs after the stop time
-            if (GetSunset(now) < StopDate)
+            if (GetSunset(now) < now.Date + StopTime)
             {
                 values = InsertInToTimeAndColorTemperaturePair(values, GetSunset(now), ConvertKelvinToColorTemperature(SunsetColorTemperature));
             }

@@ -18,12 +18,15 @@ namespace HueController.UnitTests
         {
             Flux flux = new Flux();
 
-            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 5, 0, 0));
-            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 6, 59, 59));
-            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 7, 30, 0));
-            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 10, 0, 0));
-            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 19, 0, 0));
-            flux.GetThreadSleepDuration(new DateTime(DateTime.Today.AddYears(1).Year, 1, 1, 21, 0, 0));
+            DateTime dateTime = DateTime.Today.AddDays(-2);
+
+            flux.GetThreadSleepDuration(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 5, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 6, 59, 59));
+            flux.GetThreadSleepDuration(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 7, 30, 0));
+            flux.GetThreadSleepDuration(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 10, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 19, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 21, 0, 0));
+            flux.GetThreadSleepDuration(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 23, 30, 0));
         }
 
         //[TestMethod]
