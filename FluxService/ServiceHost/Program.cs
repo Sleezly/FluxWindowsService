@@ -11,7 +11,7 @@ namespace FluxService
                 x.Service<FluxWindowsService>(p =>
                 {
                     p.ConstructUsing(name => new FluxWindowsService());
-                    p.WhenStarted(tc => tc.Start());
+                    p.WhenStarted(async tc => await tc.Start());
                     p.WhenStopped(tc => tc.Stop());
                 });
 

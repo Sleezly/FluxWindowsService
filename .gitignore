@@ -259,3 +259,5 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/FluxService/Mqtt/MqttConfig.json
+/FluxService/Config/MqttConfig.json

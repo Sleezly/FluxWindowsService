@@ -9,8 +9,5 @@ namespace FluxService
     {
         [OperationContract]
         HueStatus Get();
-
-        [OperationContract]
-        Task Post(bool On, double LightLevel);
     }
 }

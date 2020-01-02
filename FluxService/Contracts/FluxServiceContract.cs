@@ -6,17 +6,12 @@ namespace FluxService
     public class FluxServiceContract : IFluxServiceContract
     {
         /// <summary>
-        /// Hue instance.
-        /// </summary>
-        private readonly Hue hue = new Hue();
-        
-        /// <summary>
         /// Retrieval of Hue Status info.
         /// </summary>
         /// <returns></returns>
         public HueStatus Get()
         {
-            return hue.GetStatus();
+            return FluxWindowsService.Hue.GetStatus();
         }
 
         /// <summary>
@@ -24,9 +19,10 @@ namespace FluxService
         /// </summary>
         /// <param name="On"></param>
         /// <returns></returns>
-        public async Task Post(bool on, double lightLevel)
+        public async Task Post(bool on)
         {
-            await hue.MakeRequest(on, lightLevel);
+            await FluxWindowsService.Hue.Enable(on);
         }
+
     }
 }

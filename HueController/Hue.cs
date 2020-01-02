@@ -14,13 +14,18 @@ namespace HueController
     public class Hue
     {
         /// <summary>
+        /// Properties
+        /// </summary>
+        public double? LightLevel { get; set; } = null;
+
+        /// <summary>
         /// Status
         /// </summary>
-        public Primitives.ColorTemperature ColorTemperature { get; private set; }
-        public byte? Brightness { get; private set; } = null;
-        public double? LightLevel { get; private set; } = null;
-        public TimeSpan? CurrentSleepDuration { get; private set; } = null;
-        public DateTime? CurrentWakeCycle { get; private set; } = null;
+
+        private Primitives.ColorTemperature LastColorTemperature { get; set; }
+        private byte? LastBrightness { get; set; } = null;
+        private TimeSpan? CurrentSleepDuration { get; set; } = null;
+        private DateTime? CurrentWakeCycle { get; set; } = null;
 
         /// <summary>
         /// Hue Configuration Settings
@@ -61,8 +66,8 @@ namespace HueController
             {
                 FluxStatus = Flux.GetStatus(),
                 On = FluxUpdateWorkerTask != null && FluxUpdateWorkerCancellationToken != null && !FluxUpdateWorkerCancellationToken.IsCancellationRequested,
-                LastColorTemperature = ColorTemperature,
-                LastBrightness = Brightness,
+                LastColorTemperature = LastColorTemperature,
+                LastBrightness = LastBrightness.HasValue ? LastBrightness.Value : LightLevel.HasValue ? CalculateFluxBrightness(LightLevel.Value) : 0,
                 LastLightlevel = Convert.ToInt32(LightLevel),
                 CurrentSleepDuration = CurrentSleepDuration,
                 CurrentWakeCycle = CurrentWakeCycle,
@@ -73,11 +78,8 @@ namespace HueController
         /// Interacts with the Hue client.
         /// </summary>
         /// <param name="start"></param>
-        /// <param name="lightLevel"></param>
-        public async Task MakeRequest(bool start, double lightLevel)
+        public async Task Enable(bool start)
         {
-            LightLevel = lightLevel;
-
             if (start)
             {
                 Start();
@@ -172,7 +174,11 @@ namespace HueController
             // Infinite loop until told to stop by master thread
             while (!cancellationToken.IsCancellationRequested)
             {
-                await FluxUpdate();
+                // Must have valid values before initiating an update
+                if (LightLevel.HasValue)
+                {
+                    await FluxUpdate();
+                }
 
                 // Get our next sleep duration which is no less than 4 minutes out.
                 TimeSpan currentSleepDuration = TimeSpan.FromSeconds(Math.Max(
@@ -186,7 +192,7 @@ namespace HueController
                 this.CurrentSleepDuration = currentSleepDuration;
                 this.CurrentWakeCycle = DateTime.Now + currentSleepDuration;
 
-                Log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{ColorTemperature}' and brightness '{Brightness}' complete; sleeping for '{Math.Floor(currentSleepDuration.TotalMinutes):00}:{currentSleepDuration.Seconds:00}' and will resume at '{DateTime.Now + currentSleepDuration}'.");
+                Log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{LastColorTemperature}' and brightness '{LastBrightness}' complete; sleeping for '{Math.Floor(currentSleepDuration.TotalMinutes):00}:{currentSleepDuration.Seconds:00}' and will resume at '{DateTime.Now + currentSleepDuration}'.");
 
                 // Wait for the next interval which will require an update
                 await Task.Delay(currentSleepDuration, cancellationToken).ContinueWith(tsk =>
@@ -211,7 +217,7 @@ namespace HueController
             Primitives.ColorTemperature colorTemperature = Flux.GetColorTemperature(DateTime.Now);
 
             // Get the brightness
-            byte brightness = CalculateFluxBrightness();
+            byte brightness = CalculateFluxBrightness(LightLevel.Value);
 
             IEnumerable<Task> fluxTasks = HueClients.Select(async hueClient =>
             {
@@ -228,17 +234,17 @@ namespace HueController
                 }
 
                 // Send light update commands to lights which are currently 'On'
-                await ModifyFluxLights(hueClient, lights, colorTemperature, brightness, Brightness ?? 0, LightTansitionTime);
+                await ModifyFluxLights(hueClient, lights, colorTemperature, brightness, LastBrightness ?? 0, LightTansitionTime);
 
                 // Update the underlying 'Flux' scenes
-                await ModifyFluxSwitchScenes(hueClient, lights, colorTemperature, brightness, Brightness ?? 0);
+                await ModifyFluxSwitchScenes(hueClient, lights, colorTemperature, brightness, LastBrightness ?? 0);
             });
 
             await Task.WhenAll(fluxTasks);
 
             // Set updated status prior to invoking callbacks
-            this.ColorTemperature = colorTemperature;
-            this.Brightness = brightness;
+            this.LastColorTemperature = colorTemperature;
+            this.LastBrightness = brightness;
         }
 
         /// <summary>
@@ -504,13 +510,8 @@ namespace HueController
         /// Returns a brightness byte value when a lightlevel has been provided to the Flux RESTful service.
         /// </summary>
         /// <returns></returns>
-        private byte CalculateFluxBrightness()
+        private byte CalculateFluxBrightness(double lightLevel)
         {
-            if (!LightLevel.HasValue)
-            {
-                throw new ArgumentNullException(nameof(LightLevel));
-            }
-
             //
             // LightLevel value from Hue Motion Sensor to LUX light reading translation
             //
@@ -531,9 +532,9 @@ namespace HueController
                 DateTime.Now < Flux.GetSunset(DateTime.Now))
             {
                 // Daytime
-                double lightLevelPercent = Math.Max(0.0, (LightLevel.Value - MinLightLevel) / Math.Max(MaxLightLevel - MinLightLevel, LightLevel.Value - MinLightLevel));
+                double lightLevelPercent = Math.Max(0.0, (lightLevel - MinLightLevel) / Math.Max(MaxLightLevel - MinLightLevel, lightLevel - MinLightLevel));
 
-                Log.Debug($"LightLevel: {LightLevel}. LightLevel Percent: {lightLevelPercent.ToString()}. Brightness: {(byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent))}.");
+                Log.Debug($"LightLevel: {lightLevel}. LightLevel Percent: {lightLevelPercent.ToString()}. Brightness: {(byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent))}.");
 
                 return (byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent));
             }
