@@ -13,12 +13,12 @@ namespace HueController.UnitTests
         {
         }
 
-        [TestMethod]
-        public void HueGetStatus()
-        {
-            Hue hue = new Hue();
-            hue.GetStatus();
-        }
+        //[TestMethod]
+        //public void HueGetStatus()
+        //{
+        //    Hue hue = new Hue();
+        //    hue.GetStatus();
+        //}
 
         [TestMethod]
         public void HueLightEntityRegistry()

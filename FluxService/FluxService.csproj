@@ -69,14 +69,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\MqttConfig.cs" />
-    <Compile Include="Contracts\FluxServiceContract.cs" />
-    <Compile Include="Controller\FluxController.cs" />
+    <Compile Include="DataContracts\FluxStatus.cs" />
     <Compile Include="ServiceHost\FluxWindowsService.cs" />
-    <Compile Include="Contracts\IFluxServiceContract.cs" />
     <Compile Include="Mqtt\MqttSubscriber.cs" />
     <Compile Include="ServiceHost\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceHost\WebSelfHostStartup.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HueController\HueController.csproj">

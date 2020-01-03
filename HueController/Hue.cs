@@ -1,5 +1,4 @@
-﻿using HueController.Utilities;
-using log4net;
+﻿using log4net;
 using Q42.HueApi;
 using Q42.HueApi.Models;
 using Q42.HueApi.Models.Groups;
@@ -14,27 +13,34 @@ namespace HueController
     public class Hue
     {
         /// <summary>
-        /// Properties
+        /// Properties.
         /// </summary>
         public double? LightLevel { get; set; } = null;
 
         /// <summary>
-        /// Status
+        /// Flux Status.
         /// </summary>
 
-        private Primitives.ColorTemperature LastColorTemperature { get; set; }
-        private byte? LastBrightness { get; set; } = null;
-        private TimeSpan? CurrentSleepDuration { get; set; } = null;
-        private DateTime? CurrentWakeCycle { get; set; } = null;
+        public byte? LastBrightness { get; set; } = null;
+        public Primitives.ColorTemperature LastColorTemperature { get; set; } = null;
+
+        /// <summary>
+        /// MQTT Interaction.
+        /// </summary>
+        /// <param name="brightness">Brightness</param>
+        /// <param name="ColorTemperature">Color Temperature</param>
+        /// <returns></returns>
+        public delegate Task PublishFluxStatus(byte brightness, int ColorTemperature);
+        private PublishFluxStatus PublishStatus { get; }
 
         /// <summary>
         /// Hue Configuration Settings
         /// </summary>
-        public double MaxLightLevel { get; private set; }
-        public double MinLightLevel { get; private set; }
-        public byte MaxBrightness { get; private set; }
-        public byte MinBrightness { get; private set; }
-        public TimeSpan LightTansitionTime { get; private set; }
+        private double MaxLightLevel;
+        private double MinLightLevel;
+        private byte MaxBrightness;
+        private byte MinBrightness;
+        private TimeSpan LightTansitionTime;
 
         /// <summary>
         /// Hue Bridge Clients.
@@ -58,20 +64,12 @@ namespace HueController
         private readonly Flux Flux = new Flux();
 
         /// <summary>
-        /// Status retrival property.
+        /// Constructor.
         /// </summary>
-        public HueStatus GetStatus()
+        /// <param name="publishFluxStatus"></param>
+        public Hue(PublishFluxStatus publishFluxStatus)
         {
-            return new HueStatus()
-            {
-                FluxStatus = Flux.GetStatus(),
-                On = FluxUpdateWorkerTask != null && FluxUpdateWorkerCancellationToken != null && !FluxUpdateWorkerCancellationToken.IsCancellationRequested,
-                LastColorTemperature = LastColorTemperature,
-                LastBrightness = LastBrightness.HasValue ? LastBrightness.Value : LightLevel.HasValue ? CalculateFluxBrightness(LightLevel.Value) : 0,
-                LastLightlevel = Convert.ToInt32(LightLevel),
-                CurrentSleepDuration = CurrentSleepDuration,
-                CurrentWakeCycle = CurrentWakeCycle,
-            };
+            PublishStatus = publishFluxStatus;
         }
 
         /// <summary>
@@ -189,9 +187,6 @@ namespace HueController
                 const int round = 15;
                 double CountRound = (currentSleepDuration.TotalSeconds / round);
 
-                this.CurrentSleepDuration = currentSleepDuration;
-                this.CurrentWakeCycle = DateTime.Now + currentSleepDuration;
-
                 Log.Info($"'{nameof(FluxUpdateThread)}' activity for color temperature '{LastColorTemperature}' and brightness '{LastBrightness}' complete; sleeping for '{Math.Floor(currentSleepDuration.TotalMinutes):00}:{currentSleepDuration.Seconds:00}' and will resume at '{DateTime.Now + currentSleepDuration}'.");
 
                 // Wait for the next interval which will require an update
@@ -245,6 +240,9 @@ namespace HueController
             // Set updated status prior to invoking callbacks
             this.LastColorTemperature = colorTemperature;
             this.LastBrightness = brightness;
+
+            // Publish the updated status values so they are retained
+            await PublishStatus(brightness, colorTemperature);
         }
 
         /// <summary>
@@ -367,14 +365,14 @@ namespace HueController
                 light.State.On &&
                 light.IsFluxControlled());
 
-            Dictionary<LightCommand, List<string>> lightGroups = CalculateLightCommands(lights, colorTemperature, brightness, lastBrightness, transitiontime);
+            Dictionary<LightCommand, IList<string>> lightGroups = CalculateLightCommands(lights, colorTemperature, brightness, lastBrightness, transitiontime);
 
             // Send the light update command
-            foreach (KeyValuePair<LightCommand, List<string>> lightGroup in lightGroups)
+            foreach (KeyValuePair<LightCommand, IList<string>> lightGroup in lightGroups)
             {
                 try 
                 {
-                    HueResults result = await hueClient.SendCommandAsync(lightGroup.Key, lightGroup.Value.ToArray());
+                    HueResults result = await hueClient.SendCommandAsync(lightGroup.Key, lightGroup.Value);
 
                     IEnumerable<string> lightNames = lightGroup.Value
                         .Select(lightId =>
@@ -398,10 +396,10 @@ namespace HueController
         /// <param name="lightsToScan"></param>
         /// <param name="colorTemperature"></param>
         /// <param name="transitiontime"></param>
-        internal static Dictionary<LightCommand, List<string>> CalculateLightCommands(IEnumerable<Light> lights, Primitives.ColorTemperature newColorTemperature, byte newBrightness, byte lastBrightness, TimeSpan transitionTime)
+        internal static Dictionary<LightCommand, IList<string>> CalculateLightCommands(IEnumerable<Light> lights, Primitives.ColorTemperature newColorTemperature, byte newBrightness, byte lastBrightness, TimeSpan transitionTime)
         {
             // Lights to update
-            Dictionary<LightCommand, List<string>> lightsCommands = new Dictionary<LightCommand, List<string>>();
+            Dictionary<LightCommand, IList<string>> lightsCommands = new Dictionary<LightCommand, IList<string>>();
 
             //double[] newColorTemperatureAsXY = ColorConverter.RGBtoXY(ColorConverter.MiredToRGB(newColorTemperature));
             double[] newColorTemperatureAsXY = newColorTemperature.XY;

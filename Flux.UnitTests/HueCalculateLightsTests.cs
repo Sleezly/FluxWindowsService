@@ -131,7 +131,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
                     CurrentColorTemperature,
                     BrightnessMatches,
@@ -147,7 +147,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
                     CurrentColorTemperature,
                     BrightnessDim,
@@ -167,7 +167,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
                     CurrentColorTemperature - 5,
                     BrightnessMatches,
@@ -187,7 +187,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
                     ColorTemperatureExtensions.MaxAllowedColorTemperatureForWhiteAmbianceLights + 5,
                     BrightnessMatches,
@@ -207,7 +207,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     DefaultLightTestGroup,
                     CurrentColorTemperature - 5,
                     25,
@@ -234,7 +234,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     new List<Light>()
                     {
                         new Light() {
@@ -275,7 +275,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     new List<Light>()
                     {
                         new Light() {
@@ -316,7 +316,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     new List<Light>()
                     {
                         new Light() {
@@ -362,7 +362,7 @@ namespace HueController.UnitTests
         {
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     new List<Light>()
                     {
                         new Light() {
@@ -404,7 +404,7 @@ namespace HueController.UnitTests
 
             using (ShimsContext.Create())
             {
-                Dictionary<LightCommand, List<string>> result = Hue.CalculateLightCommands(
+                Dictionary<LightCommand, IList<string>> result = Hue.CalculateLightCommands(
                     new List<Light>()
                     {
                         new Light() {

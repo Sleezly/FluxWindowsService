@@ -2,6 +2,7 @@
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
+using Newtonsoft.Json;
 using System;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,8 @@ namespace FluxService
         /// </summary>
         public delegate Task OnEnablementUpdatedCallback(bool enable);
         public delegate void OnLightLevelUpdated(double lightLevel);
-        
+        public delegate void OnFluxStatusUpdatedCallback(byte brightness, int colorTemperature);
+
         /// <summary>
         /// MQTT Client.
         /// </summary>
@@ -23,9 +25,17 @@ namespace FluxService
         private readonly IMqttClient MqttClient;
 
         /// <summary>
+        /// MQTT Connection Settings.
+        /// </summary>
+        private readonly MqttConfig MqttConfig = MqttConfig.ParseConfig();
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        public MqttSubscriber(OnEnablementUpdatedCallback onEnablementUpdatedCallback, OnLightLevelUpdated onLightLevelUpdatedCallback)
+        public MqttSubscriber(
+            OnEnablementUpdatedCallback onEnablementUpdatedCallback, 
+            OnLightLevelUpdated onLightLevelUpdatedCallback,
+            OnFluxStatusUpdatedCallback onFluxStatusUpdatedCallback)
         {
             if (null == onEnablementUpdatedCallback)
             {
@@ -37,8 +47,6 @@ namespace FluxService
                 throw new ArgumentNullException(nameof(onLightLevelUpdatedCallback));
             }
 
-            MqttConfig mqttConfig = MqttConfig.ParseConfig();
-            
             MqttFactory = new MqttFactory();
             MqttClient = MqttFactory.CreateMqttClient();
 
@@ -49,15 +57,20 @@ namespace FluxService
                 {
                     string utfString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload, 0, e.ApplicationMessage.Payload.Length);
 
-                    if (e.ApplicationMessage.Topic.Equals($"{mqttConfig.Topic}/set", StringComparison.OrdinalIgnoreCase))
+                    if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/set", StringComparison.OrdinalIgnoreCase))
                     {
                         bool enable = Convert.ToBoolean(utfString);
                         onEnablementUpdatedCallback(enable);
                     }
-                    else if (e.ApplicationMessage.Topic.Equals($"{mqttConfig.Topic}/lightlevel", StringComparison.OrdinalIgnoreCase))
+                    else if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/lightlevel", StringComparison.OrdinalIgnoreCase))
                     {
                         double lightLevel = Convert.ToDouble(utfString);
                         onLightLevelUpdatedCallback(lightLevel);
+                    }
+                    else if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/status", StringComparison.OrdinalIgnoreCase))
+                    {
+                        FluxStatus fluxStatus = JsonConvert.DeserializeObject<FluxStatus>(utfString);
+                        onFluxStatusUpdatedCallback(fluxStatus.Brightness, fluxStatus.ColorTemperature);
                     }
                 }
                 catch (Exception)
@@ -70,7 +83,7 @@ namespace FluxService
             {
                 // Subscribe to the desired topic when connected
                 MqttClientSubscribeResult result = await MqttClient.SubscribeAsync(new TopicFilterBuilder()
-                    .WithTopic($"{mqttConfig.Topic}/#")
+                    .WithTopic($"{MqttConfig.Topic}/#")
                     .Build());
             });
 
@@ -88,27 +101,25 @@ namespace FluxService
         /// <param name="entities"></param>
         public async Task Connect()
         {
-            MqttConfig mqttConfig = MqttConfig.ParseConfig();
-
-            if (string.IsNullOrEmpty(mqttConfig.BrokerHostname))
+            if (string.IsNullOrEmpty(MqttConfig.BrokerHostname))
             {
-                throw new ArgumentNullException(nameof(mqttConfig.BrokerHostname));
+                throw new ArgumentNullException(nameof(MqttConfig.BrokerHostname));
             }
 
-            if (string.IsNullOrEmpty(mqttConfig.Username))
+            if (string.IsNullOrEmpty(MqttConfig.Username))
             {
-                throw new ArgumentNullException(nameof(mqttConfig.Username));
+                throw new ArgumentNullException(nameof(MqttConfig.Username));
             }
 
-            if (string.IsNullOrEmpty(mqttConfig.Password))
+            if (string.IsNullOrEmpty(MqttConfig.Password))
             {
-                throw new ArgumentNullException(nameof(mqttConfig.Password));
+                throw new ArgumentNullException(nameof(MqttConfig.Password));
             }
 
             // Create TCP-based connection options
             IMqttClientOptions mqttClientOptions = new MqttClientOptionsBuilder()
-                .WithTcpServer(mqttConfig.BrokerHostname)
-                .WithCredentials(mqttConfig.Username, mqttConfig.Password)
+                .WithTcpServer(MqttConfig.BrokerHostname)
+                .WithCredentials(MqttConfig.Username, MqttConfig.Password)
                 .WithCleanSession()
                 .Build();
 
@@ -132,6 +143,30 @@ namespace FluxService
         public async Task Disconnect()
         {
             await MqttClient.DisconnectAsync();
+        }
+
+        /// <summary>
+        /// Publishes a FluxStatus payload.
+        /// </summary>
+        /// <param name="topic">Topic</param>
+        /// <param name="payload">Payload</param>
+        /// <param name="retain">Retain</param>
+        /// <returns></returns>
+        public async Task PublishFluxStatus(FluxStatus fluxStatus)
+        {
+            await Publish("status", JsonConvert.SerializeObject(fluxStatus), true);
+        }
+
+        /// <summary>
+        /// Publishes a message.
+        /// </summary>
+        /// <param name="topic">Topic</param>
+        /// <param name="payload">Payload</param>
+        /// <param name="retain">Retain</param>
+        /// <returns></returns>
+        private async Task Publish(string topic, string payload, bool retain)
+        {
+            await MqttClient.PublishAsync($"{MqttConfig.Topic}/{topic}", payload, retain);
         }
     }
 }
