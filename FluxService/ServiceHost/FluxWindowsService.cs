@@ -71,8 +71,7 @@ namespace FluxService
         /// </summary>
         private void OnFluxStatusUpdatedCallback(byte brightness, int colorTemperature)
         {
-            Hue.LastBrightness = brightness;
-            Hue.LastColorTemperature = colorTemperature;
+            Hue.UpdateFluxStatus(brightness, colorTemperature);
         }
     }
 }

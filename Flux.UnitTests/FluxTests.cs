@@ -16,7 +16,7 @@ namespace HueController.UnitTests
         [TestMethod]
         public void TestGetPollingRate()
         {
-            Flux flux = new Flux();
+            FluxCalculate flux = new FluxCalculate();
 
             DateTime dateTime = DateTime.Today.AddDays(-2);
 
@@ -61,7 +61,7 @@ namespace HueController.UnitTests
         [TestMethod]
         public void TestSimulateToday()
         {
-            Flux flux = new Flux();
+            FluxCalculate flux = new FluxCalculate();
 
             DateTime time = DateTime.Today + TimeSpan.FromSeconds(1);
             DateTime stopTime = DateTime.Today + new TimeSpan(23, 59, 59);
@@ -94,7 +94,7 @@ namespace HueController.UnitTests
         [TestMethod]
         public void TestGetColorTemperatureCompleteDay()
         {
-            Flux flux = new Flux();
+            FluxCalculate flux = new FluxCalculate();
 
             DateTime time = DateTime.Today + TimeSpan.FromMinutes(1);
             DateTime stopTime = DateTime.Today + new TimeSpan(23, 59, 0);
@@ -123,7 +123,7 @@ namespace HueController.UnitTests
 
             for (int i = 0; i < endDuration; i++)
             {
-                Primitives.ColorTemperature value = Flux.GetColorTemperature(500, 0, i, endDuration);
+                Primitives.ColorTemperature value = FluxCalculate.GetColorTemperature(500, 0, i, endDuration);
 
                 Debug.WriteLine($"{value}");
             }

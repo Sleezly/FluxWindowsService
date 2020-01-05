@@ -83,7 +83,11 @@ namespace HueController.UnitTests
 
                 HueClient hueClient = new LocalHueClient(null);
 
-                await Hue.ModifyFluxSwitchScenes(hueClient, lights, colorTemperature, brightnessNew, brightnessPrevious);
+                Hue hue = new Hue(null);
+
+                hue.UpdateFluxStatus(brightnessPrevious, colorTemperature);
+
+                await hue.ModifyFluxSwitchScenes(hueClient, lights, colorTemperature, brightnessNew);
             }
         }
     }

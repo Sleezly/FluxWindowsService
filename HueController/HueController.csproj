@@ -49,12 +49,13 @@
     <Compile Include="Extensions\ColorTemperatureExtensions.cs" />
     <Compile Include="Extensions\LightExtensions.cs" />
     <Compile Include="LightType.cs" />
+    <Compile Include="Primitives\Brightness.cs" />
     <Compile Include="Primitives\ColorTemperature.cs" />
     <Compile Include="Utilities\ColorConverter.cs" />
     <Compile Include="Utilities\HSV.cs" />
     <Compile Include="Utilities\Logging.cs" />
     <Compile Include="Utilities\RGB.cs" />
-    <Compile Include="Flux.cs" />
+    <Compile Include="FluxCalculate.cs" />
     <Compile Include="Config\FluxConfig.cs" />
     <Compile Include="Hue.cs" />
     <Compile Include="DataContracts\FluxStatus.cs" />

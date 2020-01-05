@@ -40,6 +40,11 @@ namespace HueController.Primitives
             return null != colorTemperature ? colorTemperature.Integer : 0;
         }
 
+        public static implicit operator int?(ColorTemperature colorTemperature)
+        {
+            return null != colorTemperature ? colorTemperature.Integer : (int?)null;
+        }
+
         public static ColorTemperature operator +(ColorTemperature first, ColorTemperature second)
         {
             return first.Integer + second.Integer;

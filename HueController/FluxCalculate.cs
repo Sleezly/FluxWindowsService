@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace HueController
 {
-    public class Flux
+    public class FluxCalculate
     {
         public readonly double Longitude;
         public readonly double Latitude;
@@ -23,7 +23,7 @@ namespace HueController
         public DateTime Sunset { get { return GetSunset(DateTime.Today); } }
         public DateTime SolarNoon { get { return GetSolarNoon(DateTime.Today); } }
 
-        public Flux()
+        public FluxCalculate()
         {
             FluxConfig fluxConfig = FluxConfig.ParseConfig();
 
