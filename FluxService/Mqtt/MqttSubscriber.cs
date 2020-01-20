@@ -1,4 +1,5 @@
-﻿using MQTTnet;
+﻿using log4net;
+using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
@@ -28,6 +29,11 @@ namespace FluxService
         /// MQTT Connection Settings.
         /// </summary>
         private readonly MqttConfig MqttConfig = MqttConfig.ParseConfig();
+
+        /// <summary>
+        /// Logging
+        /// </summary>
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Constructor.
@@ -81,6 +87,8 @@ namespace FluxService
             // Handle subscription connection
             MqttClient.UseConnectedHandler(async e =>
             {
+                Log.Debug($"{nameof(MqttSubscriber)} is connected. Attempting to subscribe to topic '{MqttConfig.Topic}'.");
+
                 // Subscribe to the desired topic when connected
                 MqttClientSubscribeResult result = await MqttClient.SubscribeAsync(new TopicFilterBuilder()
                     .WithTopic($"{MqttConfig.Topic}/#")
@@ -90,6 +98,11 @@ namespace FluxService
             // Handle disconnects
             MqttClient.UseDisconnectedHandler(async e =>
             {
+                Log.Debug($"{nameof(MqttSubscriber)} is disconnected. Attempting to reconnect.");
+
+                // Allow time for network connectivy hiccups to be resolved before trying again.
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
                 // Reconnect when disconnected
                 await Connect();
             });

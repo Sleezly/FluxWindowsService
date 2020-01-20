@@ -12,7 +12,7 @@ namespace FluxService
                 {
                     p.ConstructUsing(name => new FluxWindowsService());
                     p.WhenStarted(async tc => await tc.Start());
-                    p.WhenStopped(tc => tc.Stop());
+                    p.WhenStopped(async tc => await tc.Stop());
                 });
 
                 x.RunAsLocalSystem();

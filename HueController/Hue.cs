@@ -49,7 +49,7 @@ namespace HueController
         /// <param name="ColorTemperature">Color Temperature</param>
         /// <returns></returns>
         public delegate Task PublishFluxStatus(byte brightness, int ColorTemperature);
-        private PublishFluxStatus PublishStatus { get; }
+        private readonly PublishFluxStatus PublishStatus;
 
         /// <summary>
         /// Hue Configuration Settings

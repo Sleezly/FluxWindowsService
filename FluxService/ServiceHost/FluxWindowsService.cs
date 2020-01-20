@@ -8,21 +8,12 @@ namespace FluxService
         /// <summary>
         /// Hue instance.
         /// </summary>
-        public readonly Hue Hue;
+        private Hue Hue = null;
 
         /// <summary>
         /// MQTT subscriber.
         /// </summary>
-        private readonly MqttSubscriber MqttSubscriber;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public FluxWindowsService()
-        {
-            Hue = new Hue(PublishFluxStatus);
-            MqttSubscriber = new MqttSubscriber(OnEnablementUpdatedCallback, OnLightLevelUpdatedCallback, OnFluxStatusUpdatedCallback);
-        }
+        private MqttSubscriber MqttSubscriber = null;
 
         /// <summary>
         /// Starting point.
@@ -30,15 +21,19 @@ namespace FluxService
         /// <returns></returns>
         public async Task Start()
         {
+            Hue = new Hue(PublishFluxStatus);
+            MqttSubscriber = new MqttSubscriber(OnEnablementUpdatedCallback, OnLightLevelUpdatedCallback, OnFluxStatusUpdatedCallback);
+
             // Connect to the MQTT broker.
-            await MqttSubscriber.Connect();
+            await MqttSubscriber?.Connect();
         }
 
         /// <summary>
         /// Stops the web server.
         /// </summary>
-        public void Stop()
+        public async Task Stop()
         {
+            await MqttSubscriber?.Disconnect();
         }
 
         /// <summary>
@@ -46,7 +41,7 @@ namespace FluxService
         /// </summary>
         private async Task PublishFluxStatus(byte brightness, int colorTemperature)
         {
-            await MqttSubscriber.PublishFluxStatus(new FluxStatus(brightness, colorTemperature));
+            await MqttSubscriber?.PublishFluxStatus(new FluxStatus(brightness, colorTemperature));
         }
 
         /// <summary>
@@ -55,7 +50,7 @@ namespace FluxService
         /// <param name="enabled"></param>
         private async Task OnEnablementUpdatedCallback(bool enabled)
         {
-            await Hue.Enable(enabled);
+            await Hue?.Enable(enabled);
         }
 
         /// <summary>
@@ -63,7 +58,10 @@ namespace FluxService
         /// </summary>
         private void OnLightLevelUpdatedCallback(double lightLevel)
         {
-            Hue.LightLevel = lightLevel;
+            if (null != Hue)
+            {
+                Hue.LightLevel = lightLevel;
+            }
         }
 
         /// <summary>
@@ -71,7 +69,7 @@ namespace FluxService
         /// </summary>
         private void OnFluxStatusUpdatedCallback(byte brightness, int colorTemperature)
         {
-            Hue.UpdateFluxStatus(brightness, colorTemperature);
+            Hue?.UpdateFluxStatus(brightness, colorTemperature);
         }
     }
 }
