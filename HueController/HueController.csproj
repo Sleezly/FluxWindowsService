@@ -51,7 +51,7 @@
   <ItemGroup>
     <Compile Include="Extensions\ColorTemperatureExtensions.cs" />
     <Compile Include="Extensions\LightExtensions.cs" />
-    <Compile Include="LightType.cs" />
+    <Compile Include="Primitives\LightType.cs" />
     <Compile Include="Primitives\Brightness.cs" />
     <Compile Include="Primitives\ColorTemperature.cs" />
     <Compile Include="Utilities\ColorConverter.cs" />
