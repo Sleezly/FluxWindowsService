@@ -104,7 +104,7 @@ namespace FluxService
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
                 // Reconnect when disconnected
-                await Connect();
+                Connect();
             });
         }
 
@@ -112,7 +112,7 @@ namespace FluxService
         /// Attempt to connect and subscribe to the MQTT broker.
         /// </summary>
         /// <param name="entities"></param>
-        public async Task Connect()
+        public void Connect()
         {
             if (string.IsNullOrEmpty(MqttConfig.BrokerHostname))
             {
@@ -136,17 +136,24 @@ namespace FluxService
                 .WithCleanSession()
                 .Build();
 
-            while (!MqttClient.IsConnected)
+            // Fire and forget to ensure windows service is not blocked on initialization
+            // pending successful connection to the MQTT subscription.
+            Task task = Task.Factory.StartNew(async () =>
             {
-                try
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                while (!MqttClient.IsConnected)
                 {
-                    await MqttClient.ConnectAsync(mqttClientOptions);
+                    try
+                    {
+                        await MqttClient.ConnectAsync(mqttClientOptions);
+                    }
+                    catch (Exception)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
                 }
-                catch (Exception)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                }
-            }
+            });
         }
 
         /// <summary>

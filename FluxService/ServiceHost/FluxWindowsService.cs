@@ -19,13 +19,13 @@ namespace FluxService
         /// Starting point.
         /// </summary>
         /// <returns></returns>
-        public async Task Start()
+        public void Start()
         {
             Hue = new Hue(PublishFluxStatus);
             MqttSubscriber = new MqttSubscriber(OnEnablementUpdatedCallback, OnLightLevelUpdatedCallback, OnFluxStatusUpdatedCallback);
 
             // Connect to the MQTT broker.
-            await MqttSubscriber?.Connect();
+            MqttSubscriber?.Connect();
         }
 
         /// <summary>
