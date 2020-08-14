@@ -222,8 +222,6 @@ namespace HueController
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="adjustBrightness"></param>
-        /// <param name="now"></param>
         /// <returns></returns>
         private async Task FluxUpdate()
         {
@@ -535,37 +533,39 @@ namespace HueController
         /// <returns></returns>
         private byte CalculateFluxBrightness(double lightLevel)
         {
-            //
-            // LightLevel value from Hue Motion Sensor to LUX light reading translation
-            //
-            //                                        Lux                Hue LightLevel
-            // Overcast moonless night sky              0.0001                  0
-            // Outdoor: Bright moonlight                1                       1
-            // Home: Night light                        2                    3000
-            // Home: Dimmed light                      10                   10000
-            // Home: ‘Cosy’ living room                50                   17000
-            // Home: ‘Normal’ non - task light        150                   22000
-            // Home: Working / reading                350                   25500
-            // Home: Inside daylight                  700                   28500
-            // Home: Maximum to avoid glare          2000                   33000
-            // Outdoor: Clear daylight            > 10000                 > 40000
-            // Outdoor: direct sunlight            120000                   51000
+            return this.MaxBrightness;
 
-            if (DateTime.Now > FluxCalculate.GetSunrise(DateTime.Now) && 
-                DateTime.Now < FluxCalculate.GetSunset(DateTime.Now))
-            {
-                // Daytime
-                double lightLevelPercent = Math.Max(0.0, (lightLevel - MinLightLevel) / Math.Max(MaxLightLevel - MinLightLevel, lightLevel - MinLightLevel));
+            ////
+            //// LightLevel value from Hue Motion Sensor to LUX light reading translation
+            ////
+            ////                                        Lux                Hue LightLevel
+            //// Overcast moonless night sky              0.0001                  0
+            //// Outdoor: Bright moonlight                1                       1
+            //// Home: Night light                        2                    3000
+            //// Home: Dimmed light                      10                   10000
+            //// Home: ‘Cosy’ living room                50                   17000
+            //// Home: ‘Normal’ non - task light        150                   22000
+            //// Home: Working / reading                350                   25500
+            //// Home: Inside daylight                  700                   28500
+            //// Home: Maximum to avoid glare          2000                   33000
+            //// Outdoor: Clear daylight            > 10000                 > 40000
+            //// Outdoor: direct sunlight            120000                   51000
 
-                Log.Debug($"LightLevel: {lightLevel}. LightLevel Percent: {lightLevelPercent.ToString()}. Calculated Brightness: {(byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent))}.");
+            //if (DateTime.Now > FluxCalculate.GetSunrise(DateTime.Now) && 
+            //    DateTime.Now < FluxCalculate.GetSunset(DateTime.Now))
+            //{
+            //    // Daytime
+            //    double lightLevelPercent = Math.Max(0.0, (lightLevel - MinLightLevel) / Math.Max(MaxLightLevel - MinLightLevel, lightLevel - MinLightLevel));
 
-                return (byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent));
-            }
-            else
-            {
-                // Nightime
-                return this.MaxBrightness;
-            }
+            //    Log.Debug($"LightLevel: {lightLevel}. LightLevel Percent: {lightLevelPercent.ToString()}. Calculated Brightness: {(byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent))}.");
+
+            //    return (byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent));
+            //}
+            //else
+            //{
+            //    // Nightime
+            //    return this.MaxBrightness;
+            //}
         }
     }
 }
