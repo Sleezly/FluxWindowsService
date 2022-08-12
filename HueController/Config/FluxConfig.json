@@ -1,8 +1,8 @@
 ﻿{
   // Hue Hub client secrets
   "BridgeDetails": {
-    "192.168.1.49": "GHnCQe25v5OoalLLr829zs1vutC-JafGgxLnkJ8E",
-    "192.168.1.18": "qdqMnTtULs1xrLag1zjTNzop29nJLNn3h6x0bl8I"
+    "192.168.1.10": "0PzYJ3BZwK6fr1LfE2lMm-LJtWrnnBWt4f-SORpR",
+    "192.168.1.11": "qdqMnTtULs1xrLag1zjTNzop29nJLNn3h6x0bl8I"
   },
 
   // Transition interval duration
