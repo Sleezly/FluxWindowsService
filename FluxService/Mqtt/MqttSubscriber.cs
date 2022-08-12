@@ -90,7 +90,7 @@ namespace FluxService
                 Log.Debug($"{nameof(MqttSubscriber)} is connected. Attempting to subscribe to topic '{MqttConfig.Topic}'.");
 
                 // Subscribe to the desired topic when connected
-                MqttClientSubscribeResult result = await MqttClient.SubscribeAsync(new TopicFilterBuilder()
+                MqttClientSubscribeResult result = await MqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
                     .WithTopic($"{MqttConfig.Topic}/#")
                     .Build());
             });
@@ -100,7 +100,7 @@ namespace FluxService
             {
                 Log.Debug($"{nameof(MqttSubscriber)} is disconnected. Attempting to reconnect.");
 
-                // Allow time for network connectivy hiccups to be resolved before trying again.
+                // Allow time for network connectivity hiccups to be resolved before trying again.
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
                 // Reconnect when disconnected
