@@ -3,6 +3,7 @@ using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
+using MQTTnet.Exceptions;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -98,10 +99,8 @@ namespace FluxService
             // Handle disconnects
             MqttClient.UseDisconnectedHandler(async e =>
             {
-                Log.Debug($"{nameof(MqttSubscriber)} is disconnected. Attempting to reconnect.");
-
                 // Allow time for network connectivity hiccups to be resolved before trying again.
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(5));
 
                 // Reconnect when disconnected
                 Connect();
@@ -112,7 +111,7 @@ namespace FluxService
         /// Attempt to connect and subscribe to the MQTT broker.
         /// </summary>
         /// <param name="entities"></param>
-        public void Connect()
+        public async void Connect()
         {
             if (string.IsNullOrEmpty(MqttConfig.BrokerHostname))
             {
@@ -138,7 +137,7 @@ namespace FluxService
 
             // Fire and forget to ensure windows service is not blocked on initialization
             // pending successful connection to the MQTT subscription.
-            Task task = Task.Factory.StartNew(async () =>
+            await Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
@@ -148,9 +147,15 @@ namespace FluxService
                     {
                         await MqttClient.ConnectAsync(mqttClientOptions);
                     }
-                    catch (Exception)
+                    catch (MqttCommunicationException exception)
                     {
+                        Log.Debug($"{exception.Message}");
                         await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
+                    catch (Exception exception)
+                    {
+                        Log.Debug($"{exception.Message}");
+                        break;
                     }
                 }
             });
