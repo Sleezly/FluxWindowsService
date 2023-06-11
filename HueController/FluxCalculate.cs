@@ -18,10 +18,12 @@ namespace HueController
 
         public readonly TimeSpan StopTime;
 
-        public DateTime StopDate { get { return DateTime.Today + StopTime; } }
-        public DateTime Sunrise { get { return GetSunrise(DateTime.Today); } }
-        public DateTime Sunset { get { return GetSunset(DateTime.Today); } }
-        public DateTime SolarNoon { get { return GetSolarNoon(DateTime.Today); } }
+        public DateTime DateForCircadian => new DateTime(2020, 06, 01, 0, 0, 0, 0);
+
+        public DateTime StopDate { get { return DateForCircadian + StopTime; } }
+        public DateTime Sunrise { get { return GetSunrise(DateForCircadian); } }
+        public DateTime Sunset { get { return GetSunset(DateForCircadian); } }
+        public DateTime SolarNoon { get { return GetSolarNoon(DateForCircadian); } }
 
         public FluxCalculate()
         {

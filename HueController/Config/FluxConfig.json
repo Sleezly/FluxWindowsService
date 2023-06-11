@@ -18,7 +18,7 @@
   // Flux color values
   "SunriseColorTemperature": 3000,
   "SolarNoonTemperature":    5000,
-  "SunsetColorTemperature":  2400,
+  "SunsetColorTemperature":  3000,
   "StopColorTemperature":    2000,
 
   // Brightness
