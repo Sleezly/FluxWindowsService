@@ -1,59 +1,59 @@
 {
   "Lights": [
     {
-      "Name": "tv accent bias",
+      "Name": "tv accent 1",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "tv accent mantle",
+      "Name": "tv accent 2",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "kitchen accent dishwasher",
+      "Name": "kitchen accent 1",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "kitchen accent coffee",
+      "Name": "kitchen accent 2",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "kitchen accent microwave",
+      "Name": "kitchen accent 3",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "kitchen accent oven",
+      "Name": "kitchen accent 4",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "bathroom 1",
+      "Name": "powder 1",
       "ControlBrightness": false
     },
     {
-      "Name": "bathroom 2",
+      "Name": "powder 2",
       "ControlBrightness": false
     },
     {
-      "Name": "bathroom 3",
+      "Name": "powder 3",
       "ControlBrightness": false
     },
     {
-      "Name": "mantle ceiling 1",
+      "Name": "tv bias 1",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "mantle ceiling 2",
+      "Name": "tv bias 2",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
     {
-      "Name": "mantle ceiling 3",
+      "Name": "tv bias 3",
       "ControlBrightness": false,
       "ControlTemperature": true
     },
