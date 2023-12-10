@@ -66,6 +66,11 @@
       "Name": "outside front 4",
       "ControlBrightness": true,
       "ControlTemperature": false
+    },
+	{
+      "Name": "string",
+      "ControlBrightness": false,
+      "ControlTemperature": false
     }
   ]
 }
