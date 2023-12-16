@@ -31,18 +31,6 @@
       "ControlTemperature": true
     },
     {
-      "Name": "powder 1",
-      "ControlBrightness": false
-    },
-    {
-      "Name": "powder 2",
-      "ControlBrightness": false
-    },
-    {
-      "Name": "powder 3",
-      "ControlBrightness": false
-    },
-    {
       "Name": "tv bias 1",
       "ControlBrightness": false,
       "ControlTemperature": true
