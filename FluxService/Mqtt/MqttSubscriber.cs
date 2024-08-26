@@ -1,9 +1,8 @@
 ﻿using log4net;
 using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Client.Options;
-using MQTTnet.Client.Subscribing;
 using MQTTnet.Exceptions;
+using MQTTnet.Protocol;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -58,11 +57,11 @@ namespace FluxService
             MqttClient = MqttFactory.CreateMqttClient();
 
             // Handle callbacks
-            MqttClient.UseApplicationMessageReceivedHandler(e =>
+            MqttClient.ApplicationMessageReceivedAsync += e =>
             {
                 try
                 {
-                    string utfString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload, 0, e.ApplicationMessage.Payload.Length);
+                    string utfString = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment.Array, 0, e.ApplicationMessage.PayloadSegment.Array.Length);
 
                     if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/set", StringComparison.OrdinalIgnoreCase))
                     {
@@ -83,10 +82,12 @@ namespace FluxService
                 catch (Exception)
                 {
                 }
-            });
+
+                return Task.CompletedTask;
+            };
 
             // Handle subscription connection
-            MqttClient.UseConnectedHandler(async e =>
+            MqttClient.ConnectedAsync += async e =>
             {
                 Log.Debug($"{nameof(MqttSubscriber)} is connected. Attempting to subscribe to topic '{MqttConfig.Topic}'.");
 
@@ -94,17 +95,17 @@ namespace FluxService
                 MqttClientSubscribeResult result = await MqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
                     .WithTopic($"{MqttConfig.Topic}/#")
                     .Build());
-            });
+            };
 
             // Handle disconnects
-            MqttClient.UseDisconnectedHandler(async e =>
+            MqttClient.DisconnectedAsync += async e =>
             {
                 // Allow time for network connectivity hiccups to be resolved before trying again.
                 await Task.Delay(TimeSpan.FromSeconds(5));
 
                 // Reconnect when disconnected
                 Connect();
-            });
+            };
         }
 
         /// <summary>
@@ -129,7 +130,7 @@ namespace FluxService
             }
 
             // Create TCP-based connection options
-            IMqttClientOptions mqttClientOptions = new MqttClientOptionsBuilder()
+            MqttClientOptions mqttClientOptions = new MqttClientOptionsBuilder()
                 .WithTcpServer(MqttConfig.BrokerHostname)
                 .WithCredentials(MqttConfig.Username, MqttConfig.Password)
                 .WithCleanSession()
@@ -189,9 +190,9 @@ namespace FluxService
         /// <param name="payload">Payload</param>
         /// <param name="retain">Retain</param>
         /// <returns></returns>
-        private async Task Publish(string topic, string payload, bool retain)
+        private async Task<MqttClientPublishResult> Publish(string topic, string payload, bool retain)
         {
-            await MqttClient.PublishAsync($"{MqttConfig.Topic}/{topic}", payload, retain);
+            return await MqttClient.PublishStringAsync($"{MqttConfig.Topic}/{topic}", payload, retain: retain);
         }
     }
 }
