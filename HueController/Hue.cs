@@ -475,13 +475,18 @@ namespace HueController
                             switch (light.State.ColorMode)
                             {
                                 case "xy":
-                                    {
-                                        double xyDifference = Math.Abs(light.State.ColorCoordinates[0] - newColorTemperatureAsXY[0]) + Math.Abs(light.State.ColorCoordinates[1] - newColorTemperatureAsXY[1]);
-                                        if (xyDifference > 0.001 && xyDifference < 0.15)
-                                        {
-                                            needToSetColorTemperature = true;
-                                        }
-                                    }
+                                    //{
+                                    //    double xyDifference = Math.Abs(light.State.ColorCoordinates[0] - newColorTemperatureAsXY[0]) + Math.Abs(light.State.ColorCoordinates[1] - newColorTemperatureAsXY[1]);
+                                    //    if (xyDifference > 0.001 && xyDifference < 0.15)
+                                    //    {
+                                    //        needToSetColorTemperature = true;
+                                    //    }
+                                    //}
+
+                                    Log.Debug($"'{nameof(CalculateLightCommands)}' {lightGroup.Key} has XY color '[{light.State.ColorCoordinates[0]}, {light.State.ColorCoordinates[1]}]'. Ignoring request to set to '[{newColorTemperatureAsXY[0]}, {newColorTemperatureAsXY[1]}]'.");
+
+                                    // Color is always ignored by Flux.
+                                    needToSetColorTemperature = false;
                                     break;
 
                                 case "hs":
