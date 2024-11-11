@@ -56,9 +56,14 @@
       "ControlTemperature": false
     },
 	{
-      "Name": "string",
+      "Name": "christmas tree",
       "ControlBrightness": false,
       "ControlTemperature": false
-    }
-  ]
+    },
+ 	{
+      "Name": "olive tree",
+      "ControlBrightness": false,
+      "ControlTemperature": false
+    },
+ ]
 }

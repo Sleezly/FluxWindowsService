@@ -483,7 +483,7 @@ namespace HueController
                                     //    }
                                     //}
 
-                                    Log.Debug($"'{nameof(CalculateLightCommands)}' {lightGroup.Key} has XY color '[{light.State.ColorCoordinates[0]}, {light.State.ColorCoordinates[1]}]'. Ignoring request to set to '[{newColorTemperatureAsXY[0]}, {newColorTemperatureAsXY[1]}]'.");
+                                    //Log.Debug($"'{nameof(CalculateLightCommands)}' {lightGroup.Key} has XY color '[{light.State.ColorCoordinates[0]}, {light.State.ColorCoordinates[1]}]'. Ignoring request to set to '[{newColorTemperatureAsXY[0]}, {newColorTemperatureAsXY[1]}]'.");
 
                                     // Color is always ignored by Flux.
                                     needToSetColorTemperature = false;
