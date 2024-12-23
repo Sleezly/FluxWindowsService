@@ -104,7 +104,7 @@
       <Version>13.0.3</Version>
     </PackageReference>
     <PackageReference Include="Q42.HueApi">
-      <Version>3.23.1</Version>
+      <Version>3.23.2</Version>
     </PackageReference>
     <PackageReference Include="Q42.HueApi.Net">
       <Version>3.3.2</Version>
