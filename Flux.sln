@@ -1,20 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HueController.UnitTests", "Flux.UnitTests\HueController.UnitTests.csproj", "{347AA536-B87F-4AF9-8871-AF9654944E9E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluxApplication", "FluxApplication\FluxApplication.csproj", "{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluxService", "FluxService\FluxService.csproj", "{03DF11CF-825B-46B5-B4F8-032EB0B0B787}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HueController", "HueController\HueController.csproj", "{6F197056-E324-4C6F-9184-27F2759570F3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3AD8C2AB-6D1B-422D-869F-067FA0006474}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HueController", "HueController\HueController.csproj", "{4E7F6A3B-DEBE-ACF9-B9C4-77181467510C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluxService", "FluxService\FluxService.csproj", "{00BAF0FB-A986-1D19-FF16-ABB4A42E3B0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,18 +24,14 @@ Global
 		{347AA536-B87F-4AF9-8871-AF9654944E9E}.Debug|x64.Build.0 = Debug|x64
 		{347AA536-B87F-4AF9-8871-AF9654944E9E}.Release|x64.ActiveCfg = Release|x64
 		{347AA536-B87F-4AF9-8871-AF9654944E9E}.Release|x64.Build.0 = Release|x64
-		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Debug|x64.ActiveCfg = Debug|x64
-		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Debug|x64.Build.0 = Debug|x64
-		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Release|x64.ActiveCfg = Release|x64
-		{8CF88F92-2C3F-4320-BA64-B1B8AFF88782}.Release|x64.Build.0 = Release|x64
-		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Debug|x64.ActiveCfg = Debug|x64
-		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Debug|x64.Build.0 = Debug|x64
-		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Release|x64.ActiveCfg = Release|x64
-		{03DF11CF-825B-46B5-B4F8-032EB0B0B787}.Release|x64.Build.0 = Release|x64
-		{6F197056-E324-4C6F-9184-27F2759570F3}.Debug|x64.ActiveCfg = Debug|x64
-		{6F197056-E324-4C6F-9184-27F2759570F3}.Debug|x64.Build.0 = Debug|x64
-		{6F197056-E324-4C6F-9184-27F2759570F3}.Release|x64.ActiveCfg = Release|x64
-		{6F197056-E324-4C6F-9184-27F2759570F3}.Release|x64.Build.0 = Release|x64
+		{4E7F6A3B-DEBE-ACF9-B9C4-77181467510C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4E7F6A3B-DEBE-ACF9-B9C4-77181467510C}.Debug|x64.Build.0 = Debug|Any CPU
+		{4E7F6A3B-DEBE-ACF9-B9C4-77181467510C}.Release|x64.ActiveCfg = Release|Any CPU
+		{4E7F6A3B-DEBE-ACF9-B9C4-77181467510C}.Release|x64.Build.0 = Release|Any CPU
+		{00BAF0FB-A986-1D19-FF16-ABB4A42E3B0F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{00BAF0FB-A986-1D19-FF16-ABB4A42E3B0F}.Debug|x64.Build.0 = Debug|Any CPU
+		{00BAF0FB-A986-1D19-FF16-ABB4A42E3B0F}.Release|x64.ActiveCfg = Release|Any CPU
+		{00BAF0FB-A986-1D19-FF16-ABB4A42E3B0F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -45,16 +45,6 @@
       "ControlBrightness": false,
       "ControlTemperature": true
     },
-    {
-      "Name": "outside front 3",
-      "ControlBrightness": true,
-      "ControlTemperature": false
-    },
-    {
-      "Name": "outside front 4",
-      "ControlBrightness": true,
-      "ControlTemperature": false
-    },
 	{
       "Name": "christmas tree",
       "ControlBrightness": false,

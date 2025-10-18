@@ -24,6 +24,8 @@ namespace HueController.Primitives
                 Math.Min(colorTemperature, MaxAllowedColorTemperatureForWhiteAndColorLights));
         }
 
+        public HueApi.Models.ColorTemperature Temperature => new HueApi.Models.ColorTemperature() { Mirek = Integer };
+
         public double Kelvin => 1000000.0 / Integer;
 
         public RGB RGB => ColorConverter.MiredToRGB(Integer);
@@ -33,6 +35,11 @@ namespace HueController.Primitives
         public static implicit operator ColorTemperature(int colorTemperature)
         {
             return new ColorTemperature(colorTemperature);
+        }
+
+        public static implicit operator HueApi.Models.ColorTemperature(ColorTemperature colorTemperature)
+        {
+            return new HueApi.Models.ColorTemperature() { Mirek = colorTemperature.Integer };
         }
 
         public static implicit operator int(ColorTemperature colorTemperature)
@@ -108,6 +115,16 @@ namespace HueController.Primitives
             }
 
             return first.Equals(second);
+        }
+
+        public static bool operator ==(HueApi.Models.ColorTemperature first, ColorTemperature second)
+        {
+            return first.Mirek.HasValue && Equals(first.Mirek.Value, second.Integer);
+        }
+
+        public static bool operator !=(HueApi.Models.ColorTemperature first, ColorTemperature second)
+        {
+            return first.Mirek.HasValue && !(first == second);
         }
 
         public static bool operator ==(ColorTemperature first, ColorTemperature second)

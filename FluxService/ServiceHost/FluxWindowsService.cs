@@ -8,7 +8,7 @@ namespace FluxService
         /// <summary>
         /// Hue instance.
         /// </summary>
-        private Hue Hue = null;
+        private FluxHue Hue = null;
 
         /// <summary>
         /// MQTT subscriber.
@@ -21,7 +21,7 @@ namespace FluxService
         /// <returns></returns>
         public void Start()
         {
-            Hue = new Hue(PublishFluxStatus);
+            Hue = new FluxHue(PublishFluxStatus);
             MqttSubscriber = new MqttSubscriber(OnEnablementUpdatedCallback, OnLightLevelUpdatedCallback, OnFluxStatusUpdatedCallback);
 
             // Connect to the MQTT broker.

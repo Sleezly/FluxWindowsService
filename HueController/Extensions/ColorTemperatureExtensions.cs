@@ -48,22 +48,23 @@ namespace HueController
         /// </summary>
         /// <param name="color"></param>
         /// <returns></returns>
-        public static ColorTemperature NormalizeColorForAllowedColorRange(this ColorTemperature color, LightType lightType)
-        {
-            switch (lightType)
-            {
-                case LightType.Color:
-                    return Math.Min(MaxAllowedColorTemperatureForWhiteAndColorLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
-
-                case LightType.WhiteAmbiance:
-                    return Math.Min(MaxAllowedColorTemperatureForWhiteAmbianceLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
-
-                case LightType.WhiteOnly:
-                    return null;
-
-                default:
-                    throw new ArgumentException($"Unsupported light type '{lightType}'.");
-            }
-        }
+        public static ColorTemperature NormalizeColorForAllowedColorRange(this ColorTemperature color) =>
+            Math.Min(MaxAllowedColorTemperatureForWhiteAndColorLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
+        //{
+        //    switch (lightType)
+        //    {
+        //        case LightType.Color:
+        //            return Math.Min(MaxAllowedColorTemperatureForWhiteAndColorLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
+        //
+        //        case LightType.WhiteAmbiance:
+        //            return Math.Min(MaxAllowedColorTemperatureForWhiteAmbianceLights, Math.Max(color, MinAllowedColorTemperatureForWhiteAndColorLights));
+        //
+        //        case LightType.WhiteOnly:
+        //            return null;
+        //
+        //        default:
+        //            throw new ArgumentException($"Unsupported light type '{lightType}'.");
+        //    }
+        //}
     }
 }

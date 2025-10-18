@@ -1,7 +1,4 @@
-﻿using Q42.HueApi;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using HueApi.Models;
 
 namespace HueController
 {
@@ -39,18 +36,18 @@ namespace HueController
         private static LightConfig ToLightConfig(this Light light)
         {
             return LightConfigs.SingleOrDefault(lightEntityDetail =>
-               lightEntityDetail.Name.Equals(light.Name, StringComparison.OrdinalIgnoreCase)) ??
+               lightEntityDetail.Name.Equals(light.Metadata.Name, StringComparison.OrdinalIgnoreCase)) ??
                 new LightConfig()
                 {
-                    Name = light.Name,
+                    Name = light.Metadata.Name,
                     ControlTemperature = true,
                     ControlBrightness = true,
                 };
         }
 
-        public static Light Get(this IEnumerable<Light> lights, string id)
+        public static Light Get(this IEnumerable<Light> lights, Guid id)
         {
-            return lights.SingleOrDefault(light => light.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+            return lights.SingleOrDefault(light => light.Id == id);
         }
 
         /// <summary>
