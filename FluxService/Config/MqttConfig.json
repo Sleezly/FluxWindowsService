@@ -1,0 +1,6 @@
+﻿{
+  "BrokerHostname": "192.168.1.5",
+  "Topic": "home/flux",
+  "Username": "flux",
+  "Password": "yavin333"
+}
