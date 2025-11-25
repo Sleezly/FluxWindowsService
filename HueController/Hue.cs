@@ -14,18 +14,11 @@ namespace HueController
         /// </summary>
         public double? LightLevel { get; set; } = null;
 
-        public void UpdateFluxStatus(byte brightness, int colorTemperature)
+        public void UpdateFluxStatus(int colorTemperature)
         {
-            Log.Debug($"{nameof(UpdateFluxStatus)} brightness '{brightness}' and color temperature '{colorTemperature}'.");
+            Log.Debug($"{nameof(UpdateFluxStatus)} color temperature '{colorTemperature}'.");
 
-            LastBrightnesses.Enqueue(brightness);
             LastColorTemperatures.Enqueue(colorTemperature);
-
-            if (LastBrightnesses.Count > MaxPreviousStatusToRetain)
-            {
-                LastBrightnesses.Dequeue();
-            }
-
             if (LastColorTemperatures.Count > MaxPreviousStatusToRetain)
             {
                 LastColorTemperatures.Dequeue();
@@ -36,26 +29,15 @@ namespace HueController
         /// Flux Status.
         /// </summary>
         private const int MaxPreviousStatusToRetain = 3;
-        private readonly Queue<Primitives.Brightness> LastBrightnesses = new Queue<Primitives.Brightness>();
         private readonly Queue<Primitives.ColorTemperature> LastColorTemperatures = new Queue<Primitives.ColorTemperature>();
 
         /// <summary>
         /// MQTT Interaction.
         /// </summary>
-        /// <param name="brightness">Brightness</param>
         /// <param name="ColorTemperature">Color Temperature</param>
         /// <returns></returns>
-        public delegate Task PublishFluxStatus(byte brightness, int ColorTemperature);
+        public delegate Task PublishFluxStatus(int ColorTemperature);
         private readonly PublishFluxStatus PublishStatus;
-
-        /// <summary>
-        /// Hue Configuration Settings
-        /// </summary>
-        private double MaxLightLevel;
-        private double MinLightLevel;
-        private byte MaxBrightness;
-        private byte MinBrightness;
-        private TimeSpan LightTansitionTime;
 
         /// <summary>
         /// Hue Bridge Clients.
@@ -149,20 +131,10 @@ namespace HueController
         {
             FluxConfig fluxConfig = FluxConfig.ParseConfig();
 
-            LightTansitionTime = fluxConfig.LightTransitionDuration;
-
-            this.MaxBrightness = fluxConfig.MaxBrightness;
-            this.MinBrightness = fluxConfig.MinBrightness;
-            this.MaxLightLevel = fluxConfig.MaxLightLevel;
-            this.MinLightLevel = fluxConfig.MinLightLevel;
-
             Log.Info($"'{nameof(SetFluxConfigValues)}' Sunrise will occur at '{FluxCalculate.Sunrise}' and color '{FluxCalculate.SunriseColorTemperature}'.");
             Log.Info($"'{nameof(SetFluxConfigValues)}' Noon will occur at'{FluxCalculate.SolarNoon}' and color '{FluxCalculate.SolarNoonTemperature}'.");
             Log.Info($"'{nameof(SetFluxConfigValues)}' Sunset will occur at '{FluxCalculate.Sunset}' and color '{FluxCalculate.SunsetColorTemperature}'.");
             Log.Info($"'{nameof(SetFluxConfigValues)}' StopDate will occur at '{FluxCalculate.StopDate}' and color '{FluxCalculate.StopColorTemperature}'.");
-
-            Log.Info($"'{nameof(SetFluxConfigValues)}' Brightness levels to vary between '{MinBrightness}' and '{MaxBrightness}'.");
-            Log.Info($"'{nameof(SetFluxConfigValues)}' Lightlevels to vary between '{MinLightLevel}' and '{MaxLightLevel}'.");
         }
 
         /// <summary>
@@ -226,10 +198,7 @@ namespace HueController
             // Get the color temperature for the given time of day
             Primitives.ColorTemperature colorTemperature = FluxCalculate.GetColorTemperature(DateTime.Now);
 
-            // Get the brightness
-            Primitives.Brightness brightness = CalculateFluxBrightness(LightLevel.Value);
-
-            Log.Info($"'{nameof(FluxUpdate)}' activity for color temperature '{colorTemperature}' and brightness '{brightness}' now starting.");
+            Log.Info($"'{nameof(FluxUpdate)}' activity for color temperature '{colorTemperature}' now starting.");
 
             foreach (LocalHueApi hueClient in HueClients)
             {
@@ -239,10 +208,10 @@ namespace HueController
                     IEnumerable<Light> lights = response.Data;
 
                     // Send light update commands to lights which are currently 'On'
-                    await ModifyFluxLights(hueClient, lights, colorTemperature, brightness);
+                    await ModifyFluxLights(hueClient, lights, colorTemperature);
 
                     // Update the underlying 'Flux' scenes
-                    await ModifyFluxSwitchScenes(hueClient, lights, colorTemperature, brightness);
+                    await ModifyFluxSwitchScenes(hueClient, lights, colorTemperature);
                 }
                 catch (Exception e)
                 {
@@ -251,20 +220,19 @@ namespace HueController
             };
 
             // Publish the updated status values so they are retained
-            await PublishStatus(brightness, colorTemperature);
+            await PublishStatus(colorTemperature);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="lightsToSet"></param>
+        /// <param name="lights"></param>
         /// <param name="colorTemperature"></param>
         internal async Task ModifyFluxSwitchScenes(
             LocalHueApi client,
             IEnumerable<Light> lights,
-            Primitives.ColorTemperature colorTemperature,
-            Primitives.Brightness newBrightness)
+            Primitives.ColorTemperature colorTemperature)
         {
             try
             {
@@ -294,7 +262,7 @@ namespace HueController
                             }
                         }
 
-                        Log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' modified '{scene.Metadata.Name}' to color temperature '{colorTemperature}' and brightness '{newBrightness}'.");
+                        Log.Debug($"'{nameof(ModifyFluxSwitchScenes)}' modified '{scene.Metadata.Name}' to color temperature '{colorTemperature}'.");
 
                         await client.Scene.UpdateAsync(scene.Id, updateScene);
                     }
@@ -309,15 +277,13 @@ namespace HueController
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="lightsToScan"></param>
-        /// <param name="colorTemperature"></param>
-        /// <param name="transitiontime"></param>
+        /// <param name="hueClient"></param>
+        /// <param name="lights"></param>
+        /// <param name="newColorTemperature"></param>
         private async Task ModifyFluxLights(
             LocalHueApi hueClient,
             IEnumerable<Light> lights,
-            Primitives.ColorTemperature newColorTemperature,
-            Primitives.Brightness newBrightness)
+            Primitives.ColorTemperature newColorTemperature)
         {
             lights = lights
                 .Where(light => light.On.IsOn)
@@ -343,47 +309,6 @@ namespace HueController
                     Log.Debug($"'{nameof(ModifyFluxLights)}' exception attempting to get lights from client. '{e.Message}' '{e.InnerException}'");
                 }
             }
-        }
-
-        /// <summary>
-        /// Returns a brightness byte value when a lightlevel has been provided to the Flux RESTful service.
-        /// </summary>
-        /// <returns></returns>
-        private byte CalculateFluxBrightness(double lightLevel)
-        {
-            return this.MaxBrightness;
-
-            ////
-            //// LightLevel value from Hue Motion Sensor to LUX light reading translation
-            ////
-            ////                                        Lux                Hue LightLevel
-            //// Overcast moonless night sky              0.0001                  0
-            //// Outdoor: Bright moonlight                1                       1
-            //// Home: Night light                        2                    3000
-            //// Home: Dimmed light                      10                   10000
-            //// Home: ‘Cosy’ living room                50                   17000
-            //// Home: ‘Normal’ non - task light        150                   22000
-            //// Home: Working / reading                350                   25500
-            //// Home: Inside daylight                  700                   28500
-            //// Home: Maximum to avoid glare          2000                   33000
-            //// Outdoor: Clear daylight            > 10000                 > 40000
-            //// Outdoor: direct sunlight            120000                   51000
-
-            //if (DateTime.Now > FluxCalculate.GetSunrise(DateTime.Now) && 
-            //    DateTime.Now < FluxCalculate.GetSunset(DateTime.Now))
-            //{
-            //    // Daytime
-            //    double lightLevelPercent = Math.Max(0.0, (lightLevel - MinLightLevel) / Math.Max(MaxLightLevel - MinLightLevel, lightLevel - MinLightLevel));
-
-            //    Log.Debug($"LightLevel: {lightLevel}. LightLevel Percent: {lightLevelPercent.ToString()}. Calculated Brightness: {(byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent))}.");
-
-            //    return (byte)Math.Floor(MinBrightness + (MaxBrightness - MinBrightness) * (1.0 - lightLevelPercent));
-            //}
-            //else
-            //{
-            //    // Nightime
-            //    return this.MaxBrightness;
-            //}
         }
     }
 }

@@ -39,9 +39,9 @@ namespace FluxService
         /// <summary>
         /// Publishes a new brightness via MQTT.
         /// </summary>
-        private async Task PublishFluxStatus(byte brightness, int colorTemperature)
+        private async Task PublishFluxStatus(int colorTemperature)
         {
-            await MqttSubscriber?.PublishFluxStatus(new FluxStatus(brightness, colorTemperature));
+            await MqttSubscriber?.PublishFluxStatus(new FluxStatus(colorTemperature));
         }
 
         /// <summary>
@@ -67,9 +67,9 @@ namespace FluxService
         /// <summary>
         /// Handles brightness changes via MQTT subscription.
         /// </summary>
-        private void OnFluxStatusUpdatedCallback(byte brightness, int colorTemperature)
+        private void OnFluxStatusUpdatedCallback(int colorTemperature)
         {
-            Hue?.UpdateFluxStatus(brightness, colorTemperature);
+            Hue?.UpdateFluxStatus(colorTemperature);
         }
     }
 }

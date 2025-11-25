@@ -4,9 +4,6 @@
     "192.168.1.10": "idr5OpDVOxqXhaH7m3RAe-38IOXMD2I2XhKVFavs"
   },
 
-  // Transition interval duration
-  "LightTransitionDuration": "00:00:10",
-
   // Coordinates for sunrise and sunset calculations
   "Latitude": 47.8601,
   "Longitude": -122.2043,
@@ -19,10 +16,4 @@
   "SolarNoonTemperature":    5000,
   "SunsetColorTemperature":  3000,
   "StopColorTemperature":    2000,
-
-  // Brightness
-  "MaxLightLevel": 35000,
-  "MinLightLevel": 15000,
-  "MaxBrightness": 254,
-  "MinBrightness": 64
 }

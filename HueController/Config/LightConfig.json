@@ -1,50 +1,5 @@
 {
   "Lights": [
-    {
-      "Name": "tv accent 1",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "tv accent 2",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "kitchen accent 1",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "kitchen accent 2",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "kitchen accent 3",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "kitchen accent 4",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "tv bias 1",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "tv bias 2",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
-    {
-      "Name": "tv bias 3",
-      "ControlBrightness": false,
-      "ControlTemperature": true
-    },
 	{
       "Name": "christmas tree",
       "ControlBrightness": false,
@@ -55,5 +10,20 @@
       "ControlBrightness": false,
       "ControlTemperature": false
     },
+ 	{
+      "Name": "backyard globe",
+      "ControlBrightness": false,
+      "ControlTemperature": false
+    },
+ 	{
+      "Name": "roof upper",
+      "ControlBrightness": false,
+      "ControlTemperature": false
+    },
+ 	{
+      "Name": "roof lower",
+      "ControlBrightness": false,
+      "ControlTemperature": false
+    }
  ]
 }

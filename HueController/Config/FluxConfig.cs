@@ -1,7 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Runtime.Serialization;
 
 namespace HueController
@@ -9,12 +6,6 @@ namespace HueController
     [DataContract]
     public class FluxConfig
     {
-        /// <summary>
-        /// Default states
-        /// </summary>
-        [DataMember]
-        public TimeSpan LightTransitionDuration;
-
         /// <summary>
         /// Bridge connection info
         /// </summary>
@@ -50,21 +41,6 @@ namespace HueController
 
         [DataMember]
         public int StopColorTemperature;
-
-        /// <summary>
-        /// Brightness
-        /// </summary>
-        [DataMember]
-        public double MaxLightLevel;
-
-        [DataMember]
-        public double MinLightLevel;
-
-        [DataMember]
-        public byte MaxBrightness;
-
-        [DataMember]
-        public byte MinBrightness;
 
         /// <summary>
         /// JSON filename.

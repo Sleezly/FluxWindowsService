@@ -17,7 +17,7 @@ namespace FluxService
         /// </summary>
         public delegate Task OnEnablementUpdatedCallback(bool enable);
         public delegate void OnLightLevelUpdated(double lightLevel);
-        public delegate void OnFluxStatusUpdatedCallback(byte brightness, int colorTemperature);
+        public delegate void OnFluxStatusUpdatedCallback(int colorTemperature);
 
         /// <summary>
         /// MQTT Client.
@@ -76,7 +76,7 @@ namespace FluxService
                     else if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/status", StringComparison.OrdinalIgnoreCase))
                     {
                         FluxStatus fluxStatus = JsonConvert.DeserializeObject<FluxStatus>(utfString);
-                        onFluxStatusUpdatedCallback(fluxStatus.Brightness, fluxStatus.ColorTemperature);
+                        onFluxStatusUpdatedCallback(fluxStatus.ColorTemperature);
                     }
                 }
                 catch (Exception)
