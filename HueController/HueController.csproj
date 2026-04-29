@@ -15,7 +15,7 @@
 		<PackageReference Include="HueApi.Entertainment" Version="3.1.0" />
 		<PackageReference Include="log4net" Version="3.3.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="SolarCalculator" Version="3.5.0" />
+		<PackageReference Include="SolarCalculator" Version="3.6.1" />
 	</ItemGroup>
 
 	<ItemGroup>
