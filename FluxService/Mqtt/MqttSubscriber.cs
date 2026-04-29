@@ -1,8 +1,7 @@
-﻿using log4net;
+using log4net;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Exceptions;
-using MQTTnet.Protocol;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -22,7 +21,6 @@ namespace FluxService
         /// <summary>
         /// MQTT Client.
         /// </summary>
-        private readonly MqttFactory MqttFactory;
         private readonly IMqttClient MqttClient;
 
         /// <summary>
@@ -53,65 +51,98 @@ namespace FluxService
                 throw new ArgumentNullException(nameof(onLightLevelUpdatedCallback));
             }
 
-            MqttFactory = new MqttFactory();
-            MqttClient = MqttFactory.CreateMqttClient();
+            MqttFactory mqttFactory = new MqttFactory();
+            MqttClient = mqttFactory.CreateMqttClient();
 
-            // Handle callbacks
             MqttClient.ApplicationMessageReceivedAsync += e =>
             {
-                try
-                {
-                    string utfString = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment.Array, 0, e.ApplicationMessage.PayloadSegment.Array.Length);
-
-                    if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/set", StringComparison.OrdinalIgnoreCase))
-                    {
-                        bool enable = Convert.ToBoolean(utfString);
-                        onEnablementUpdatedCallback(enable);
-                    }
-                    else if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/lightlevel", StringComparison.OrdinalIgnoreCase))
-                    {
-                        double lightLevel = Convert.ToDouble(utfString);
-                        onLightLevelUpdatedCallback(lightLevel);
-                    }
-                    else if (e.ApplicationMessage.Topic.Equals($"{MqttConfig.Topic}/status", StringComparison.OrdinalIgnoreCase))
-                    {
-                        FluxStatus fluxStatus = JsonConvert.DeserializeObject<FluxStatus>(utfString);
-                        onFluxStatusUpdatedCallback(fluxStatus.ColorTemperature);
-                    }
-                }
-                catch (Exception)
-                {
-                }
-
-                return Task.CompletedTask;
+                return HandleApplicationMessageReceived(e, onEnablementUpdatedCallback, onLightLevelUpdatedCallback, onFluxStatusUpdatedCallback);
             };
 
-            // Handle subscription connection
-            MqttClient.ConnectedAsync += async e =>
+            MqttClient.ConnectedAsync += HandleConnected;
+
+            MqttClient.DisconnectedAsync += HandleDisconnected;
+        }
+
+        /// <summary>
+        /// Handle incoming mesages.
+        /// </summary>
+        /// <param name="e"><see cref="MqttApplicationMessageReceivedEventArgs"/>.</param>
+        /// <param name="onEnablementUpdatedCallback"><see cref="OnEnablementUpdatedCallback"/>.</param>
+        /// <param name="onLightLevelUpdatedCallback"><see cref="OnLightLevelUpdated"/>.</param>
+        /// <param name="onFluxStatusUpdatedCallback"><see cref="OnFluxStatusUpdatedCallback"/>.</param>
+        /// <returns></returns>
+        private async Task HandleApplicationMessageReceived(
+            MqttApplicationMessageReceivedEventArgs e,
+            OnEnablementUpdatedCallback onEnablementUpdatedCallback,
+            OnLightLevelUpdated onLightLevelUpdatedCallback,
+            OnFluxStatusUpdatedCallback onFluxStatusUpdatedCallback)
+        {
+            try
             {
-                Log.Debug($"{nameof(MqttSubscriber)} is connected. Attempting to subscribe to topic '{MqttConfig.Topic}'.");
+                ArraySegment<byte> payloadBytes = e.ApplicationMessage.PayloadSegment;
+                string utfString = Encoding.UTF8.GetString(payloadBytes);
+                string topic = e.ApplicationMessage.Topic ?? string.Empty;
 
-                // Subscribe to the desired topic when connected
-                MqttClientSubscribeResult result = await MqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
-                    .WithTopic($"{MqttConfig.Topic}/#")
-                    .Build());
-            };
-
-            // Handle disconnects
-            MqttClient.DisconnectedAsync += async e =>
+                if (topic.Equals($"{MqttConfig.Topic}/set", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool enable = Convert.ToBoolean(utfString);
+                    await onEnablementUpdatedCallback(enable);
+                }
+                else if (topic.Equals($"{MqttConfig.Topic}/lightlevel", StringComparison.OrdinalIgnoreCase))
+                {
+                    double lightLevel = Convert.ToDouble(utfString);
+                    onLightLevelUpdatedCallback(lightLevel);
+                }
+                else if (topic.Equals($"{MqttConfig.Topic}/status", StringComparison.OrdinalIgnoreCase))
+                {
+                    FluxStatus fluxStatus = JsonConvert.DeserializeObject<FluxStatus>(utfString);
+                    onFluxStatusUpdatedCallback(fluxStatus.ColorTemperature);
+                }
+            }
+            catch (Exception ex)
             {
-                // Allow time for network connectivity hiccups to be resolved before trying again.
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                Log.Debug($"Error handling application message: {ex.Message}");
+            }
+        }
 
-                // Reconnect when disconnected
-                Connect();
-            };
+        /// <summary>
+        /// Handle subscription connection.
+        /// </summary>
+        /// <param name="e"><see cref="MqttClientConnectedEventArgs"/>.</param>
+        /// <returns><see cref="Task"/>.</returns>
+        private async Task HandleConnected(MqttClientConnectedEventArgs e)
+        {
+            Log.Debug($"{nameof(MqttSubscriber)} is connected. Attempting to subscribe to topic '{MqttConfig.Topic}'.");
+
+            try
+            {
+                MqttTopicFilterBuilder filterBuilder = new MqttTopicFilterBuilder();
+                await MqttClient.SubscribeAsync(filterBuilder.WithTopic($"{MqttConfig.Topic}/#").Build());
+            }
+            catch (Exception ex)
+            {
+                Log.Debug($"Failed to subscribe: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle subscription disconnect.
+        /// </summary>
+        /// <param name="e"><see cref="MqttClientDisconnectedEventArgs"/>.</param>
+        /// <returns><see cref="Task"/>.</returns>
+        private async Task HandleDisconnected(MqttClientDisconnectedEventArgs e)
+        {
+            // Allow time for network connectivity hiccups to be resolved before trying again.
+            await Task.Delay(TimeSpan.FromSeconds(5));
+
+            // Reconnect when disconnected
+            Connect();
         }
 
         /// <summary>
         /// Attempt to connect and subscribe to the MQTT broker.
         /// </summary>
-        /// <param name="entities"></param>
         public async void Connect()
         {
             if (string.IsNullOrEmpty(MqttConfig.BrokerHostname))
@@ -129,8 +160,8 @@ namespace FluxService
                 throw new ArgumentNullException(nameof(MqttConfig.Password));
             }
 
-            // Create TCP-based connection options
-            MqttClientOptions mqttClientOptions = new MqttClientOptionsBuilder()
+            MqttClientOptionsBuilder optionsBuilder = new MqttClientOptionsBuilder();
+            MqttClientOptions mqttClientOptions = optionsBuilder
                 .WithTcpServer(MqttConfig.BrokerHostname)
                 .WithCredentials(MqttConfig.Username, MqttConfig.Password)
                 .WithCleanSession()
@@ -165,7 +196,6 @@ namespace FluxService
         /// <summary>
         /// Disconnect from the MQTT broker.
         /// </summary>
-        /// <param name="entities"></param>
         public async Task Disconnect()
         {
             await MqttClient.DisconnectAsync();
@@ -174,10 +204,6 @@ namespace FluxService
         /// <summary>
         /// Publishes a FluxStatus payload.
         /// </summary>
-        /// <param name="topic">Topic</param>
-        /// <param name="payload">Payload</param>
-        /// <param name="retain">Retain</param>
-        /// <returns></returns>
         public async Task PublishFluxStatus(FluxStatus fluxStatus)
         {
             await Publish("status", JsonConvert.SerializeObject(fluxStatus), true);
@@ -186,13 +212,16 @@ namespace FluxService
         /// <summary>
         /// Publishes a message.
         /// </summary>
-        /// <param name="topic">Topic</param>
-        /// <param name="payload">Payload</param>
-        /// <param name="retain">Retain</param>
-        /// <returns></returns>
-        private async Task<MqttClientPublishResult> Publish(string topic, string payload, bool retain)
+        private async Task Publish(string topic, string payload, bool retain)
         {
-            return await MqttClient.PublishStringAsync($"{MqttConfig.Topic}/{topic}", payload, retain: retain);
+            MqttApplicationMessageBuilder messageBuilder = new MqttApplicationMessageBuilder();
+            MqttApplicationMessage message = messageBuilder
+                .WithTopic($"{MqttConfig.Topic}/{topic}")
+                .WithPayload(payload)
+                .WithRetainFlag(retain)
+                .Build();
+
+            await MqttClient.PublishAsync(message);
         }
     }
 }
