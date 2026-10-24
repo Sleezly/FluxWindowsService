@@ -1,9 +1,8 @@
 using log4net;
 using MQTTnet;
-using MQTTnet.Client;
-using MQTTnet.Exceptions;
 using Newtonsoft.Json;
 using System;
+using System.Buffers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -51,17 +50,23 @@ namespace FluxService
                 throw new ArgumentNullException(nameof(onLightLevelUpdatedCallback));
             }
 
-            MqttFactory mqttFactory = new MqttFactory();
+            MqttClientFactory mqttFactory = new MqttClientFactory();
             MqttClient = mqttFactory.CreateMqttClient();
 
-            MqttClient.ApplicationMessageReceivedAsync += e =>
+            MqttClient.ApplicationMessageReceivedAsync += async e =>
             {
-                return HandleApplicationMessageReceived(e, onEnablementUpdatedCallback, onLightLevelUpdatedCallback, onFluxStatusUpdatedCallback);
+                await HandleApplicationMessageReceived(e, onEnablementUpdatedCallback, onLightLevelUpdatedCallback, onFluxStatusUpdatedCallback);
             };
 
-            MqttClient.ConnectedAsync += HandleConnected;
+            MqttClient.ConnectedAsync += async e =>
+            {
+                await HandleConnected(e);
+            };
 
-            MqttClient.DisconnectedAsync += HandleDisconnected;
+            MqttClient.DisconnectedAsync += async e =>
+            {
+                await HandleDisconnected(e);
+            };
         }
 
         /// <summary>
@@ -80,7 +85,7 @@ namespace FluxService
         {
             try
             {
-                ArraySegment<byte> payloadBytes = e.ApplicationMessage.PayloadSegment;
+                byte[] payloadBytes = e.ApplicationMessage.Payload.ToArray();
                 string utfString = Encoding.UTF8.GetString(payloadBytes);
                 string topic = e.ApplicationMessage.Topic ?? string.Empty;
 
@@ -117,8 +122,13 @@ namespace FluxService
 
             try
             {
-                MqttTopicFilterBuilder filterBuilder = new MqttTopicFilterBuilder();
-                await MqttClient.SubscribeAsync(filterBuilder.WithTopic($"{MqttConfig.Topic}/#").Build());
+                var topicFilter = new MqttTopicFilterBuilder()
+                    .WithTopic($"{MqttConfig.Topic}/#")
+                    .Build();
+                var subscribeOptions = new MqttClientSubscribeOptionsBuilder()
+                    .WithTopicFilter(topicFilter)
+                    .Build();
+                await MqttClient.SubscribeAsync(subscribeOptions);
             }
             catch (Exception ex)
             {
@@ -179,7 +189,7 @@ namespace FluxService
                     {
                         await MqttClient.ConnectAsync(mqttClientOptions);
                     }
-                    catch (MqttCommunicationException exception)
+                    catch (OperationCanceledException exception)
                     {
                         Log.Debug($"{exception.Message}");
                         await Task.Delay(TimeSpan.FromSeconds(1));
@@ -187,7 +197,7 @@ namespace FluxService
                     catch (Exception exception)
                     {
                         Log.Debug($"{exception.Message}");
-                        break;
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                 }
             });
